@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -73,8 +74,6 @@ void b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t inpu
     encoded_str[encoded_index] = '\0';
 }
 
-static const uint8_t B64_DECODE_ERROR = 0x40;
-
 // Convert a input character to an index of the base64 encoding table
 uint8_t decode_b64_char(const char c) {
     if ((c >= 'A') && (c <= 'Z')) {
@@ -89,7 +88,15 @@ uint8_t decode_b64_char(const char c) {
         return c - 0x2f + 63;
     }
 
-    return B64_DECODE_ERROR;
+    return 0x00;
+}
+
+static bool is_valid_b64_char(const char c) {
+    if (isalnum(c) || (c == '+') || (c == '/') || (c == '=')) {
+        return true;
+    }
+
+    return false;
 }
 
 static uint8_t decode_1st_char(const char char1, const char char2) {
@@ -104,12 +111,30 @@ static uint8_t decode_3rd_char(const char char1, const char char2) {
     return ((decode_b64_char(char1) & 0x03) << 6) | (decode_b64_char(char2) & 0x3f);
 }
 
-void b64_decode(uint8_t* decoded_bytes, const char* input_str, const size_t input_size_in_bytes) {
+int b64_decode(uint8_t* decoded_bytes, const char* input_str, const size_t input_size_in_bytes) {
     size_t input_index = 0;
     size_t decoded_index = 0;
 
+    size_t remaining_inputs = input_size_in_bytes;
+    bool input_is_terminated = false;
+
     while (input_index <= input_size_in_bytes) {
-        int remaining_inputs = input_size_in_bytes - input_index;
+        if ((input_str[input_index] == '\0') || input_is_terminated) {
+            break;
+        }
+
+        int num_decode = 4 ? (remaining_inputs >= 4) : remaining_inputs;
+        for (int i = 0; i < num_decode; ++i) {
+            // Decoding fails when an input string contains invalid character
+            if (!is_valid_b64_char(input_str[input_index + i])) {
+                return 1;
+            }
+            // Byte stream is finished when an input string contains '='
+            if (input_str[input_index + i] == '=') {
+                input_is_terminated = true;
+                break;
+            }
+        }
 
         // Convert 4 input characters to 3 base64-decoded bytes
         uint8_t original_bytes[3] = { 0x0 };
@@ -142,5 +167,9 @@ void b64_decode(uint8_t* decoded_bytes, const char* input_str, const size_t inpu
 
         input_index += 4;
         decoded_index += 3;
+
+        remaining_inputs -= 4;
     }
+
+    return 0;
 }
