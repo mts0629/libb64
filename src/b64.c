@@ -37,21 +37,21 @@ void b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t inpu
     size_t input_index = 0;
     size_t encoded_index = 0;
 
-    while (input_index <= input_size_in_bytes) {
-        int input_shortage = input_size_in_bytes - input_index;
+    size_t remaining_inputs = input_size_in_bytes;
 
+    while (input_index < input_size_in_bytes) {
         // Convert 3 input characters to 4 base64-encoded characters
         char b64_chars[4] = { '\0' };
         b64_chars[0] = encode_1st_byte(input_bytes[input_index]);
-        switch (input_shortage) {
+        switch (remaining_inputs) {
             case 1:
-                b64_chars[1] = encode_2nd_byte(input_bytes[input_index], input_bytes[input_index + 1]);
-                b64_chars[2] = encode_3rd_byte(input_bytes[input_index + 1], 0x00);
+                b64_chars[1] = encode_2nd_byte(input_bytes[input_index], 0x00);
+                b64_chars[2] = '=';
                 b64_chars[3] = '=';
                 break;
             case 2:
-                b64_chars[1] = encode_2nd_byte(input_bytes[input_index], 0x00);
-                b64_chars[2] = '=';
+                b64_chars[1] = encode_2nd_byte(input_bytes[input_index], input_bytes[input_index + 1]);
+                b64_chars[2] = encode_3rd_byte(input_bytes[input_index + 1], 0x00);
                 b64_chars[3] = '=';
                 break;
             default:
@@ -68,6 +68,8 @@ void b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t inpu
 
         input_index += 3;
         encoded_index += 4;
+
+        remaining_inputs -= 3;
     }
 
     // Terminate encoded string
@@ -75,17 +77,17 @@ void b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t inpu
 }
 
 // Convert a input character to an index of the base64 encoding table
-uint8_t decode_b64_char(const char c) {
+static uint8_t decode_b64_char(const char c) {
     if ((c >= 'A') && (c <= 'Z')) {
-        return c - 0x41;
+        return c - 'A';
     } else if ((c >= 'a') && (c<= 'z')) {
-        return c - 0x61 + 26;
+        return c - 'a' + 26;
     } else if ((c >= '0') && (c <= '9')) {
-        return c - 0x30 + 52;
+        return c - '0' + 52;
     } else if (c == '+') {
-        return c - 0x2b + 62;
+        return c - '+' + 62;
     } else if (c == '/') {
-        return c - 0x2f + 63;
+        return c - '/' + 63;
     }
 
     return 0x00;
@@ -118,7 +120,7 @@ int b64_decode(uint8_t* decoded_bytes, const char* input_str, const size_t input
     size_t remaining_inputs = input_size_in_bytes;
     bool input_is_terminated = false;
 
-    while (input_index <= input_size_in_bytes) {
+    while (input_index < input_size_in_bytes) {
         if ((input_str[input_index] == '\0') || input_is_terminated) {
             break;
         }

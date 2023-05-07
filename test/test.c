@@ -10,7 +10,9 @@ static char ENCODED_CHARS[] = "QUJDREVGRw==";
 void test_encoding(void) {
     char encoded_str[32] = { '\0' };
 
-    b64_encode(encoded_str, ORIGINAL_BYTES, sizeof(ORIGINAL_BYTES));
+    b64_encode(encoded_str, ORIGINAL_BYTES, sizeof(ORIGINAL_BYTES) - 1);
+
+    printf("%s\n", encoded_str);
 
     assert(strcmp(ENCODED_CHARS, encoded_str) == 0);
 }

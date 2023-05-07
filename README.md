@@ -32,7 +32,7 @@ Test finished
 ```c
 #include "b64.h"
 
-uint8_t input_bytes[] = "ABCDEFG";
+uint8_t input_bytes[6] = "ABCDEFG";
 char encoded_str[32]; // Allocate a memory of sufficient byte size
 
 b64_encode(encoded_str, input_bytes, sizeof(input_bytes)); // encoded_str == "QUJDREVGRw=="
@@ -46,5 +46,5 @@ b64_encode(encoded_str, input_bytes, sizeof(input_bytes)); // encoded_str == "QU
 uint8_t input_string[] = "QUJDREVGRw==";
 uint8_t decoded_bytes[32]; // Allocate a memory of sufficient byte size
 
-b64_decode(decoded_bytes, input_string, sizeof(input_string)); // decoded_bytes == "ABCDEFG\0"
+b64_decode(decoded_bytes, input_string, sizeof(input_string)); // decoded_bytes == "ABCDEFG"
 ```
