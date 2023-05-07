@@ -16,19 +16,19 @@ static char encoding_table[] = {
     '+', '/'
 };
 
-static char encode_1st_char(const uint8_t byte) {
+static char encode_1st_byte(const uint8_t byte) {
     return encoding_table[(byte & 0xfc) >> 2];
 }
 
-static char encode_2nd_char(const uint8_t byte1, const uint8_t byte2) {
+static char encode_2nd_byte(const uint8_t byte1, const uint8_t byte2) {
     return encoding_table[((byte1 & 0x03) << 4) | ((byte2 & 0xf0) >> 4)];
 }
 
-static char encode_3rd_char(const uint8_t byte1, const uint8_t byte2) {
+static char encode_3rd_byte(const uint8_t byte1, const uint8_t byte2) {
     return encoding_table[((byte1 & 0x0f) << 2) | ((byte2 & 0xc0) >> 6)];
 }
 
-static char encode_4th_char(const uint8_t byte) {
+static char encode_4th_byte(const uint8_t byte) {
     return encoding_table[byte & 0x3f];
 }
 
@@ -37,26 +37,26 @@ void b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t inpu
     size_t encoded_index = 0;
 
     while (input_index <= input_size_in_bytes) {
-        int shortage = input_size_in_bytes - input_index;
+        int input_shortage = input_size_in_bytes - input_index;
 
         // Convert 3 input characters to 4 base64-encoded characters
-        char b64_chars[4];
-        b64_chars[0] = encode_1st_char(input_bytes[input_index]);
-        switch (shortage) {
+        char b64_chars[4] = { '\0' };
+        b64_chars[0] = encode_1st_byte(input_bytes[input_index]);
+        switch (input_shortage) {
             case 1:
-                b64_chars[1] = encode_2nd_char(input_bytes[input_index], input_bytes[input_index + 1]);
-                b64_chars[2] = encode_3rd_char(input_bytes[input_index + 1], 0x00);
+                b64_chars[1] = encode_2nd_byte(input_bytes[input_index], input_bytes[input_index + 1]);
+                b64_chars[2] = encode_3rd_byte(input_bytes[input_index + 1], 0x00);
                 b64_chars[3] = '=';
                 break;
             case 2:
-                b64_chars[1] = encode_2nd_char(input_bytes[input_index], 0x00);
+                b64_chars[1] = encode_2nd_byte(input_bytes[input_index], 0x00);
                 b64_chars[2] = '=';
                 b64_chars[3] = '=';
                 break;
             default:
-                b64_chars[1] = encode_2nd_char(input_bytes[input_index], input_bytes[input_index + 1]);
-                b64_chars[2] = encode_3rd_char(input_bytes[input_index + 1], input_bytes[input_index + 2]);
-                b64_chars[3] = encode_4th_char(input_bytes[input_index + 2]);
+                b64_chars[1] = encode_2nd_byte(input_bytes[input_index], input_bytes[input_index + 1]);
+                b64_chars[2] = encode_3rd_byte(input_bytes[input_index + 1], input_bytes[input_index + 2]);
+                b64_chars[3] = encode_4th_byte(input_bytes[input_index + 2]);
                 break;
         }
 
@@ -75,6 +75,7 @@ void b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t inpu
 
 static const uint8_t B64_DECODE_ERROR = 0x40;
 
+// Convert a input character to an index of the base64 encoding table
 uint8_t decode_b64_char(const char c) {
     if ((c >= 'A') && (c <= 'Z')) {
         return c - 0x41;
@@ -108,11 +109,11 @@ void b64_decode(uint8_t* decoded_bytes, const char* input_str, const size_t inpu
     size_t decoded_index = 0;
 
     while (input_index <= input_size_in_bytes) {
-        int shortage = input_size_in_bytes - input_index;
+        int remaining_inputs = input_size_in_bytes - input_index;
 
         // Convert 4 input characters to 3 base64-decoded bytes
         uint8_t original_bytes[3] = { 0x0 };
-        switch (shortage) {
+        switch (remaining_inputs) {
             case 1:
                 original_bytes[0] = decode_1st_char(input_str[input_index], '\0');
                 original_bytes[1] = 0x0;

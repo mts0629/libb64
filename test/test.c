@@ -4,22 +4,23 @@
 
 #include "b64.h"
 
+static uint8_t ORIGINAL_BYTES[] = "ABCDEFG";
+static char ENCODED_CHARS[] = "QUJDREVGRw==";
+
 void test_encode(void) {
-    char input_str[] = "ABCDEFG";
-    char encoded_str[32];
+    char encoded_str[32] = { '\0' };
 
-    b64_encode(encoded_str, (uint8_t*)input_str, sizeof(input_str));
+    b64_encode(encoded_str, ORIGINAL_BYTES, sizeof(ORIGINAL_BYTES));
 
-    assert(strcmp("QUJDREVGRw==", encoded_str) == 0);
+    assert(strcmp(ENCODED_CHARS, encoded_str) == 0);
 }
 
 void test_decode(void) {
-    char input_str[] = "QUJDREVGRw==";
-    char decoded_str[32] = { 0 };
+    uint8_t decoded_bytes[32] = { 0 };
 
-    b64_decode((uint8_t*)decoded_str, input_str, sizeof(input_str));
+    b64_decode(decoded_bytes, ENCODED_CHARS, sizeof(ENCODED_CHARS));
 
-    assert(strcmp("ABCDEFG", decoded_str) == 0);
+    assert(memcmp(ORIGINAL_BYTES, decoded_bytes, sizeof(ORIGINAL_BYTES)) == 0);
 }
 
 int main(void) {

@@ -1,6 +1,7 @@
 #ifndef B64_H
 #define B64_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 /**
