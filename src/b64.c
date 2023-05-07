@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "b64.h"
@@ -70,4 +71,75 @@ void b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t inpu
 
     // Terminate encoded string
     encoded_str[encoded_index] = '\0';
+}
+
+static const uint8_t B64_DECODE_ERROR = 0x40;
+
+uint8_t decode_b64_char(const char c) {
+    if ((c >= 'A') && (c <= 'Z')) {
+        return c - 0x41;
+    } else if ((c >= 'a') && (c<= 'z')) {
+        return c - 0x61 + 26;
+    } else if ((c >= '0') && (c <= '9')) {
+        return c - 0x30 + 52;
+    } else if (c == '+') {
+        return c - 0x2b + 62;
+    } else if (c == '/') {
+        return c - 0x2f + 63;
+    }
+
+    return B64_DECODE_ERROR;
+}
+
+static uint8_t decode_1st_char(const char char1, const char char2) {
+    return ((decode_b64_char(char1) & 0x3f) << 2) | ((decode_b64_char(char2) & 0x30) >> 4);
+}
+
+static uint8_t decode_2nd_char(const char char1, const char char2) {
+    return ((decode_b64_char(char1) & 0x0f) << 4) | ((decode_b64_char(char2) & 0x3c) >> 2);
+}
+
+static uint8_t decode_3rd_char(const char char1, const char char2) {
+    return ((decode_b64_char(char1) & 0x03) << 6) | (decode_b64_char(char2) & 0x3f);
+}
+
+void b64_decode(uint8_t* decoded_bytes, const char* input_str, const size_t input_size_in_bytes) {
+    size_t input_index = 0;
+    size_t decoded_index = 0;
+
+    while (input_index <= input_size_in_bytes) {
+        int shortage = input_size_in_bytes - input_index;
+
+        // Convert 4 input characters to 3 base64-decoded bytes
+        uint8_t original_bytes[3] = { 0x0 };
+        switch (shortage) {
+            case 1:
+                original_bytes[0] = decode_1st_char(input_str[input_index], '\0');
+                original_bytes[1] = 0x0;
+                original_bytes[2] = 0x0;
+                break;
+            case 2:
+                original_bytes[0] = decode_1st_char(input_str[input_index], input_str[input_index + 1]);
+                original_bytes[1] = decode_2nd_char(input_str[input_index + 1], '\0');
+                original_bytes[2] = 0x0;
+                break;
+            case 3:
+                original_bytes[0] = decode_1st_char(input_str[input_index], input_str[input_index + 1]);
+                original_bytes[1] = decode_2nd_char(input_str[input_index + 1], input_str[input_index + 2]);
+                original_bytes[2] = decode_3rd_char(input_str[input_index + 2], '\0');
+                break;
+            default:
+                original_bytes[0] = decode_1st_char(input_str[input_index], input_str[input_index + 1]);
+                original_bytes[1] = decode_2nd_char(input_str[input_index + 1], input_str[input_index + 2]);
+                original_bytes[2] = decode_3rd_char(input_str[input_index + 2], input_str[input_index + 3]);
+                break;
+        }
+
+        decoded_bytes[decoded_index]     = original_bytes[0];
+        decoded_bytes[decoded_index + 1] = original_bytes[1];
+        decoded_bytes[decoded_index + 2] = original_bytes[2];
+
+        input_index += 4;
+        decoded_index += 3;
+    }
 }
