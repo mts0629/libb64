@@ -32,10 +32,13 @@ Test finished
 ```c
 #include "b64.h"
 
+// Input byte array
 uint8_t input_bytes[6] = "ABCDEFG";
-char encoded_str[32]; // Allocate a memory of sufficient byte size
+// Output string of sufficient byte size
+char base64_str[32];
 
-b64_encode(encoded_str, input_bytes, sizeof(input_bytes)); // encoded_str == "QUJDREVGRw=="
+// base64_str is "QUJDREVGRw=="
+b64_encode(base64_str, input_bytes, sizeof(input_bytes));
 ```
 
 ### Decoding
@@ -43,8 +46,11 @@ b64_encode(encoded_str, input_bytes, sizeof(input_bytes)); // encoded_str == "QU
 ```c
 #include "b64.h"
 
-uint8_t input_string[] = "QUJDREVGRw==";
-uint8_t decoded_bytes[32]; // Allocate a memory of sufficient byte size
+// Input base64 string
+char base64_str[] = "QUJDREVGRw==";
+// Output byte array of sufficient byte size
+uint8_t decoded_bytes[32];
 
-b64_decode(decoded_bytes, input_string, sizeof(input_string)); // decoded_bytes == "ABCDEFG"
+// decoded_bytes is "ABCDEFG"
+b64_decode(decoded_bytes, base64_str, sizeof(base64_str));
 ```
