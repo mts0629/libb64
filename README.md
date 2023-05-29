@@ -20,7 +20,7 @@ cc src/b64.c -Wall -Wpedantic -std=c99 -I./include -L./bin -O2 -c -o ./bin/b64.o
 ar rc ./bin/libb64.a ./bin/b64.o
 ```
 
-A library with debug information (`libb64d.a`) can be built with: `make debug`.
+A library with debug information (`libb64d.a`) can be built with: `make DEBUG=yes`.
 
 ## Test
 
@@ -41,7 +41,7 @@ test_decoding_output_lacking_2bytes ... finished
 test_decoding_fails_by_invalid_string ... finished
 ```
 
-Test with debug build options can be with: `make test_debug`.
+Test with debug build options can be with: `make test DEBUG=yes`.
 
 ## Usage
 
