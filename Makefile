@@ -11,31 +11,35 @@ DEBUG ?= no
 ifeq ($(DEBUG), yes)
 	CFLAGS += -O0 -g
 	CONFIG := debug
-	LIB_NAME = libb64d
+	LIB_NAME = libb64d.a
 	LDFLAGS = -lb64d
 else
 	CFLAGS += -O2
 	CONFIG := release
-	LIB_NAME = libb64
+	LIB_NAME = libb64.a
 	LDFLAGS = -lb64
 endif
 
+BUILD_DIR := $(BIN_DIR)/$(CONFIG)
+TARGET_LIB := $(BUILD_DIR)/$(LIB_NAME)
+TARGET_TEST := $(BUILD_DIR)/test
+
 RM := rm -rf
 
-.PHONY: all release debug test lib bindir clean
+.PHONY: all release debug test lib make_dir clean
 
 all: lib
 
 test: $(TEST_DIR)/test.c lib
-	$(CC) $< $(CFLAGS) $(LDFLAGS) -o $(BIN_DIR)/test
-	$(BIN_DIR)/test
+	$(CC) $< $(CFLAGS) $(LDFLAGS) -o $(TARGET_TEST)
+	$(TARGET_TEST)
 
-lib: $(SRC_DIR)/b64.c bindir
+lib: $(SRC_DIR)/b64.c make_dir
 	$(CC) $< $(CFLAGS) -c -o $(BIN_DIR)/b64.o
-	$(AR) rc $(BIN_DIR)/$(LIB_NAME).a $(BIN_DIR)/b64.o
+	$(AR) rc $(TARGET_LIB) $(BIN_DIR)/b64.o
 
-bindir:
-	@mkdir -p $(BIN_DIR)
+make_dir:
+	@mkdir -p $(BUILD_DIR)
 
 clean:
 	$(RM) $(BIN_DIR)
