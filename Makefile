@@ -1,11 +1,10 @@
-CC     := gcc
-CFLAGS  = -Wall -Wextra -Wpedantic -std=c99 -I$(INC_DIR) -L$(BIN_DIR)
-LDFLAGS = -lb64
+INC_DIR  := include
+SRC_DIR  := src
+TEST_DIR := test
+BIN_DIR  := bin
 
-INC_DIR  := ./include
-SRC_DIR  := ./src
-TEST_DIR := ./test
-BIN_DIR  := ./bin
+CC     := gcc
+CFLAGS  = -Wall -Wextra -Wpedantic -std=c99 -I./$(INC_DIR)
 
 DEBUG ?= no
 ifeq ($(DEBUG), yes)
@@ -21,25 +20,30 @@ else
 endif
 
 BUILD_DIR := $(BIN_DIR)/$(CONFIG)
-TARGET_LIB := $(BUILD_DIR)/$(LIB_NAME)
-TARGET_TEST := $(BUILD_DIR)/test
+
+SRCS := $(wildcard $(SRC_DIR)/*.c)
+OBJS := $(addprefix $(BUILD_DIR), /$(SRCS:.c=.o))
+
+TEST_SRCS := $(wildcard $(TEST_DIR)/*.c)
+TEST_OBJS := $(addprefix $(BUILD_DIR), /$(TEST_SRCS:.c=.o))
+TARGET_TEST := $(BUILD_DIR)/test_runner
 
 RM := rm -rf
 
-.PHONY: all release debug test lib make_dir clean
+.PHONY: all test clean
 
-all: lib
+all: $(LIB_NAME)
 
-test: $(TEST_DIR)/test.c lib
-	$(CC) $< $(CFLAGS) $(LDFLAGS) -o $(TARGET_TEST)
-	$(TARGET_TEST)
+$(LIB_NAME): $(OBJS)
+	$(AR) rc $(BUILD_DIR)/$(LIB_NAME) $^
 
-lib: $(SRC_DIR)/b64.c make_dir
-	$(CC) $< $(CFLAGS) -c -o $(BIN_DIR)/b64.o
-	$(AR) rc $(TARGET_LIB) $(BIN_DIR)/b64.o
+$(BUILD_DIR)/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-make_dir:
-	@mkdir -p $(BUILD_DIR)
+test: $(TEST_OBJS) $(LIB_NAME)
+	$(CC) $(CFLAGS) $< -L./$(BUILD_DIR) $(LDFLAGS) -o $(TARGET_TEST)
+	./$(TARGET_TEST)
 
 clean:
 	$(RM) $(BIN_DIR)
