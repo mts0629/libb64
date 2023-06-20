@@ -6,8 +6,9 @@ Base64 encoding / decoding with C
 
 ## Requirements
 
-- gcc (C99)
-- ar
+- gcc
+    - `-std=C99`
+- GNU ar
 - GNU Make
 
 ## Build
@@ -50,16 +51,21 @@ Test with debug build options can be with: `make test DEBUG=yes`.
 ```c
 #include "b64.h"
 
-// Input byte array
-uint8_t input_bytes[7] = {
-    // "ABCDEFG"
-    0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47
-};
-// Output string of sufficient byte size, includes a NUL character ('\0')
-char base64_str[12 + 1];
+void encode_sample(void) {
+    // Input byte array
+    uint8_t input_bytes[7] = {
+        // "ABCDEFG"
+        0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47
+    };
 
-// base64_str is "QUJDREVGRw=="
-b64_encode(base64_str, input_bytes, sizeof(input_bytes));
+    // Output string of sufficient byte size, includes a NUL character ('\0')
+    char base64_str[12 + 1];
+
+    b64_encode(base64_str, input_bytes, sizeof(input_bytes));
+
+    // "QUJDREVGRw=="
+    printf("%s\n", base64_str);
+}
 ```
 
 ### Decoding
@@ -67,11 +73,19 @@ b64_encode(base64_str, input_bytes, sizeof(input_bytes));
 ```c
 #include "b64.h"
 
-// Input base64 string
-char base64_str[] = "QUJDREVGRw==";
-// Output byte array of sufficient byte size
-uint8_t decoded_bytes[7];
+void decode_sample(void) {
+    // Input base64 string
+    char base64_str[] = "QUJDREVGRw==";
 
-// decoded_bytes is {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47} ("ABCDEFG")
-b64_decode(decoded_bytes, base64_str, sizeof(base64_str));
+    // Output byte array of sufficient byte size
+    uint8_t decoded_bytes[7];
+
+    b64_decode(decoded_bytes, base64_str, sizeof(base64_str));
+
+    // "0x41,0x42,0x43,0x44,0x45,0x46,0x47,"
+    for (int i = 0; i < 7; ++i) {
+        printf("0x%2x,", decoded_bytes);
+    }
+    putchar('\n');
+}
 ```
