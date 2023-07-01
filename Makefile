@@ -1,7 +1,6 @@
 INC_DIR  := include
 SRC_DIR  := src
 TEST_DIR := test
-BIN_DIR  := bin
 
 CC     := gcc
 CFLAGS  = -Wall -Wextra -Wpedantic -std=c99 -I./$(INC_DIR)
@@ -19,7 +18,7 @@ else
 	LDFLAGS = -lb64
 endif
 
-BUILD_DIR := $(BIN_DIR)/$(CONFIG)
+BUILD_DIR := build/$(CONFIG)
 
 SRCS := $(wildcard $(SRC_DIR)/*.c)
 OBJS := $(addprefix $(BUILD_DIR), /$(SRCS:.c=.o))
@@ -46,4 +45,4 @@ test: $(TEST_OBJS) $(LIB_NAME)
 	./$(TARGET_TEST)
 
 clean:
-	$(RM) $(BIN_DIR)
+	$(RM) $(BUILD_DIR)

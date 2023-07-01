@@ -13,26 +13,26 @@ Base64 encoding / decoding with C
 
 ## Build
 
-Build static library `libb64.a` to `bin/release/libb64.a`:
+Build static library `libb64.a` to `build/release/libb64.a`:
 
 ```c
 $ make # or `make lib`
-gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 -c src/b64.c -o bin/release/src/b64.o
-ar rc bin/release/libb64.a bin/release/src/b64.o
+gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 -c src/b64.c -o build/release/src/b64.o
+ar rc build/release/libb64.a build/release/src/b64.o
 ```
 
-A library with debug information (`bin/debug/libb64d.a`) can be built with: `make DEBUG=yes`.
+A library with debug information (`build/debug/libb64d.a`) can be built with: `make DEBUG=yes`.
 
 ## Test
 
-Run test cases in `test/test.c` (`bin/release/test_runner`):
+Run test cases in `test/test.c` (`build/release/test_runner`):
 
 ```c
 $ make test
-gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 -c test/test.c -o bin/release/test/test.o
-ar rc bin/release/libb64.a bin/release/src/b64.o
-gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 bin/release/test/test.o -L./bin/release -lb64 -o bin/release/test_runner
-./bin/release/test_runner
+gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 -c test/test.c -o build/release/test/test.o
+ar rc build/release/libb64.a build/release/src/b64.o
+gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 build/release/test/test.o -L./build/release -lb64 -o build/release/test_runner
+./build/release/test_runner
 test_encoding_all_b64_chars ... finished
 test_encoding_input_lacking_1byte ... finished
 test_encoding_input_lacking_2bytes ... finished
