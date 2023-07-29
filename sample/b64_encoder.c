@@ -39,7 +39,7 @@ void free_memories(void) {
 bool write_b64_str_to_file(const char *encoded_str, const char *fname) {
     FILE *fp = fopen(fname,"w");
     if (fp == NULL) {
-        fprintf(stderr, "Error: failed to open encoded.txt\n");
+        fprintf(stderr, "Error: failed to open %s\n", fname);
         return false;
     }
 
@@ -48,7 +48,6 @@ bool write_b64_str_to_file(const char *encoded_str, const char *fname) {
         fwrite(&encoded_str[i], sizeof(char), 1, fp);
         ++i;
     }
-    fprintf(fp, "%c", '\n');
 
     fclose(fp);
 
@@ -93,7 +92,7 @@ int main(int argc, char *argv[]) {
 
     size_t encoded_size = (size_t)(fsize * 1.34);
     encoded_str = malloc(sizeof(char) * encoded_size);
-    if (input_bytes == NULL) {
+    if (encoded_str == NULL) {
         fprintf(stderr, "Error: failed to allocate memory\n");
         exit(EXIT_FAILURE);
     }
