@@ -1,6 +1,7 @@
 INC_DIR  := include
 SRC_DIR  := src
 TEST_DIR := test
+SAMPLE_DIR := sample
 
 CC     := gcc
 CFLAGS  = -Wall -Wextra -Wpedantic -std=c99 -I./$(INC_DIR)
@@ -27,9 +28,12 @@ TEST_SRCS := $(wildcard $(TEST_DIR)/*.c)
 TEST_OBJS := $(addprefix $(BUILD_DIR), /$(TEST_SRCS:.c=.o))
 TARGET_TEST := $(BUILD_DIR)/test_runner
 
+SAMPLE_SRCS := $(wildcard $(SAMPLE_DIR)/*.c)
+SAMPLES := $(addprefix $(BUILD_DIR), /$(SAMPLE_SRCS:.c=))
+
 RM := rm -rf
 
-.PHONY: all test clean
+.PHONY: all test sample clean
 
 all: $(LIB_NAME)
 
@@ -43,6 +47,12 @@ $(BUILD_DIR)/%.o: %.c
 test: $(TEST_OBJS) $(LIB_NAME)
 	$(CC) $(CFLAGS) $< -L./$(BUILD_DIR) $(LDFLAGS) -o $(TARGET_TEST)
 	./$(TARGET_TEST)
+
+$(BUILD_DIR)/%: %.c $(LIB_NAME)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $< -L./$(BUILD_DIR) $(LDFLAGS) -o $@
+
+sample: $(SAMPLES)
 
 clean:
 	$(RM) $(BUILD_DIR)
