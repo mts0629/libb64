@@ -33,7 +33,7 @@ static char encode_4th_byte(const uint8_t byte) {
     return encoding_table[byte & 0x3f];
 }
 
-void b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
+size_t b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
     size_t input_index = 0;
     size_t encoded_index = 0;
 
@@ -74,6 +74,8 @@ void b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t inpu
 
     // Terminate encoded string
     encoded_str[encoded_index] = '\0';
+
+    return encoded_index;
 }
 
 // Convert a input character to an index of the base64 encoding table

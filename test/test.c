@@ -38,7 +38,7 @@ static char STR_OF_ALL_B64_CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnop
 void test_encoding_all_b64_chars(void) {
     char encoded_str[64 + 1] = { '\0' };
 
-    b64_encode(encoded_str, BYTES_FOR_ALL_B64_CHARS, sizeof(BYTES_FOR_ALL_B64_CHARS));
+    assert(b64_encode(encoded_str, BYTES_FOR_ALL_B64_CHARS, sizeof(BYTES_FOR_ALL_B64_CHARS)) == 64);
 
     ASSERT_STR_EQ(STR_OF_ALL_B64_CHARS, encoded_str);
 }
@@ -47,7 +47,7 @@ void test_encoding_input_lacking_1byte(void) {
     uint8_t input_bytes[] = { 0xff, 0xff };
     char b64_str[4 + 1];
 
-    b64_encode(b64_str, input_bytes, sizeof(input_bytes));
+    assert(b64_encode(b64_str, input_bytes, sizeof(input_bytes)) == 4);
 
     ASSERT_STR_EQ("//8=", b64_str);
 }
@@ -56,7 +56,7 @@ void test_encoding_input_lacking_2bytes(void) {
     uint8_t input_bytes[] = { 0xff };
     char b64_str[4 + 1];
 
-    b64_encode(b64_str, input_bytes, sizeof(input_bytes));
+    assert(b64_encode(b64_str, input_bytes, sizeof(input_bytes)) == 4);
 
     ASSERT_STR_EQ("/w==", b64_str);
 }

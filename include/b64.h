@@ -10,8 +10,9 @@
  * @param[out] encoded_str Base64-encoded output string, NULL-terminated
  * @param[in] input_bytes Input byte array
  * @param[in] input_size_in_bytes Input size in bytes
+ * @return Byte size of the encoded string
  */
-void b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes);
+size_t b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes);
 
 /**
  * @brief Decode base64 string
