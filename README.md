@@ -100,3 +100,8 @@ gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 -c src/b64.c -o build/rele
 ar rc build/release/libb64.a build/release/src/b64.o
 gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 sample/b64_encoder.c -L./build/release -lb64 -o build/release/sample/b64_encoder
 ```
+
+## TODO
+
+- Change to return decoded size
+- Fix decoding process
