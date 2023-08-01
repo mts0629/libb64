@@ -5,8 +5,8 @@
 #include "b64.h"
 
 // Test utility macro
-#define ASSERT_STR_EQ(expected, actual) assert(strcmp((expected), (actual)) == 0)
-#define ASSERT_MEM_EQ(expected, actual, size) assert(memcmp((expected), (actual), (size)) == 0)
+#define STR_EQ(expected, actual) (strcmp((expected), (actual)) == 0)
+#define MEM_EQ(expected, actual, size) (memcmp((expected), (actual), (size)) == 0)
 
 #define RUN_TEST(test_case_func) { \
     printf("%s ... ", # test_case_func); \
@@ -40,7 +40,7 @@ void test_encoding_all_b64_chars(void) {
 
     assert(b64_encode(encoded_str, BYTES_FOR_ALL_B64_CHARS, sizeof(BYTES_FOR_ALL_B64_CHARS)) == 64);
 
-    ASSERT_STR_EQ(STR_OF_ALL_B64_CHARS, encoded_str);
+    assert(STR_EQ(STR_OF_ALL_B64_CHARS, encoded_str));
 }
 
 void test_encoding_input_lacking_1byte(void) {
@@ -49,7 +49,7 @@ void test_encoding_input_lacking_1byte(void) {
 
     assert(b64_encode(b64_str, input_bytes, sizeof(input_bytes)) == 4);
 
-    ASSERT_STR_EQ("//8=", b64_str);
+    assert(STR_EQ("//8=", b64_str));
 }
 
 void test_encoding_input_lacking_2bytes(void) {
@@ -58,7 +58,7 @@ void test_encoding_input_lacking_2bytes(void) {
 
     assert(b64_encode(b64_str, input_bytes, sizeof(input_bytes)) == 4);
 
-    ASSERT_STR_EQ("/w==", b64_str);
+    assert(STR_EQ("/w==", b64_str));
 }
 
 void test_decoding_all_b64_chars(void) {
@@ -66,7 +66,7 @@ void test_decoding_all_b64_chars(void) {
 
     assert(b64_decode(decoded_bytes, STR_OF_ALL_B64_CHARS, sizeof(STR_OF_ALL_B64_CHARS)) == 0);
 
-    ASSERT_MEM_EQ(BYTES_FOR_ALL_B64_CHARS, decoded_bytes, sizeof(BYTES_FOR_ALL_B64_CHARS));
+    assert(MEM_EQ(BYTES_FOR_ALL_B64_CHARS, decoded_bytes, sizeof(BYTES_FOR_ALL_B64_CHARS)));
 }
 
 void test_decoding_output_lacking_1byte(void) {
@@ -76,7 +76,7 @@ void test_decoding_output_lacking_1byte(void) {
     uint8_t decoded_bytes[2];
     b64_decode(decoded_bytes, b64_str, sizeof(b64_str));
 
-    ASSERT_MEM_EQ(original_bytes, decoded_bytes, sizeof(decoded_bytes));
+    assert(MEM_EQ(original_bytes, decoded_bytes, sizeof(decoded_bytes)));
 }
 
 void test_decoding_output_lacking_2bytes(void) {
@@ -86,7 +86,7 @@ void test_decoding_output_lacking_2bytes(void) {
     uint8_t decoded_bytes[1];
     b64_decode(decoded_bytes, b64_str, sizeof(b64_str));
 
-    ASSERT_MEM_EQ(original_bytes, decoded_bytes, sizeof(decoded_bytes));
+    assert(MEM_EQ(original_bytes, decoded_bytes, sizeof(decoded_bytes)));
 }
 
 void test_decoding_fails_by_invalid_string(void) {
