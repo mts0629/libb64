@@ -64,35 +64,38 @@ void test_encoding_input_lacking_2bytes(void) {
 void test_decoding_all_b64_chars(void) {
     uint8_t decoded_bytes[48] = { 0 };
 
-    assert(b64_decode(decoded_bytes, STR_OF_ALL_B64_CHARS, sizeof(STR_OF_ALL_B64_CHARS)) == 0);
+    size_t size = b64_decode(decoded_bytes, STR_OF_ALL_B64_CHARS, sizeof(STR_OF_ALL_B64_CHARS));
+    assert(size == 48);
 
-    assert(MEM_EQ(BYTES_FOR_ALL_B64_CHARS, decoded_bytes, sizeof(BYTES_FOR_ALL_B64_CHARS)));
+    assert(MEM_EQ(BYTES_FOR_ALL_B64_CHARS, decoded_bytes, size));
 }
 
 void test_decoding_output_lacking_1byte(void) {
-    char b64_str[] = "//8=";
-    uint8_t original_bytes[] = { 0xff, 0xff };
+    char b64_str[] = "///=";
+    uint8_t original_bytes[] = { 0xff, 0xff, 0xc0 };
 
-    uint8_t decoded_bytes[2];
-    b64_decode(decoded_bytes, b64_str, sizeof(b64_str));
+    uint8_t decoded_bytes[3];
+    size_t size = b64_decode(decoded_bytes, b64_str, sizeof(b64_str));
+    assert(size == 3);
 
-    assert(MEM_EQ(original_bytes, decoded_bytes, sizeof(decoded_bytes)));
+    assert(MEM_EQ(original_bytes, decoded_bytes, size));
 }
 
 void test_decoding_output_lacking_2bytes(void) {
-    char b64_str[] = "/w==";
-    uint8_t original_bytes[] = { 0xff };
+    char b64_str[] = "//=";
+    uint8_t original_bytes[] = { 0xff, 0xf0 };
 
-    uint8_t decoded_bytes[1];
-    b64_decode(decoded_bytes, b64_str, sizeof(b64_str));
+    uint8_t decoded_bytes[2];
+    size_t size = b64_decode(decoded_bytes, b64_str, sizeof(b64_str));
+    assert(size == 2);
 
-    assert(MEM_EQ(original_bytes, decoded_bytes, sizeof(decoded_bytes)));
+    assert(MEM_EQ(original_bytes, decoded_bytes, size));
 }
 
 void test_decoding_fails_by_invalid_string(void) {
     uint8_t decoded_bytes[32] = { 0 };
 
-    assert(b64_decode(decoded_bytes, "????", sizeof("????")) == 1);
+    assert(b64_decode(decoded_bytes, "????", sizeof("????")) == 0);
 }
 
 int main(void) {

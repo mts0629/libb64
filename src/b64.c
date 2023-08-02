@@ -115,7 +115,7 @@ static uint8_t decode_3rd_char(const char char1, const char char2) {
     return ((decode_b64_char(char1) & 0x03) << 6) | (decode_b64_char(char2) & 0x3f);
 }
 
-int b64_decode(uint8_t* decoded_bytes, const char* input_str, const size_t input_size_in_bytes) {
+size_t b64_decode(uint8_t* decoded_bytes, const char* input_str, const size_t input_size_in_bytes) {
     size_t input_index = 0;
     size_t decoded_index = 0;
 
@@ -123,57 +123,55 @@ int b64_decode(uint8_t* decoded_bytes, const char* input_str, const size_t input
     bool input_is_terminated = false;
 
     while (input_index < input_size_in_bytes) {
-        if ((input_str[input_index] == '\0') || input_is_terminated) {
+        uint8_t* cur_input = &input_str[input_index];
+        if ((*cur_input == '\0') || input_is_terminated) {
             break;
         }
 
-        int num_decode = 4 ? (remaining_inputs >= 4) : remaining_inputs;
-        for (int i = 0; i < num_decode; ++i) {
+        const int num_to_decode = (remaining_inputs >= 4) ? 4 : remaining_inputs;
+        int num_decode;
+        for (num_decode = 0; num_decode < num_to_decode; ++num_decode) {
             // Decoding fails when an input string contains invalid character
-            if (!is_valid_b64_char(input_str[input_index + i])) {
-                return 1;
+            if (!is_valid_b64_char(cur_input[num_decode])) {
+                return 0;
             }
             // Byte stream is finished when an input string contains '='
-            if (input_str[input_index + i] == '=') {
+            if (cur_input[num_decode] == '=') {
                 input_is_terminated = true;
                 break;
             }
         }
 
         // Convert 4 input characters to 3 base64-decoded bytes
-        uint8_t original_bytes[3] = { 0x0 };
-        switch (remaining_inputs) {
+        uint8_t* out = &decoded_bytes[decoded_index];
+        switch (num_decode) {
             case 1:
-                original_bytes[0] = decode_1st_char(input_str[input_index], '\0');
-                original_bytes[1] = 0x0;
-                original_bytes[2] = 0x0;
+                out[0] = decode_1st_char(input_str[input_index], '\0');
+                decoded_index += 1;
                 break;
             case 2:
-                original_bytes[0] = decode_1st_char(input_str[input_index], input_str[input_index + 1]);
-                original_bytes[1] = decode_2nd_char(input_str[input_index + 1], '\0');
-                original_bytes[2] = 0x0;
+                out[0] = decode_1st_char(input_str[input_index], input_str[input_index + 1]);
+                out[1] = decode_2nd_char(input_str[input_index + 1], '\0');
+                decoded_index += 2;
                 break;
             case 3:
-                original_bytes[0] = decode_1st_char(input_str[input_index], input_str[input_index + 1]);
-                original_bytes[1] = decode_2nd_char(input_str[input_index + 1], input_str[input_index + 2]);
-                original_bytes[2] = decode_3rd_char(input_str[input_index + 2], '\0');
+                out[0] = decode_1st_char(input_str[input_index], input_str[input_index + 1]);
+                out[1] = decode_2nd_char(input_str[input_index + 1], input_str[input_index + 2]);
+                out[2] = decode_3rd_char(input_str[input_index + 2], '\0');
+                decoded_index += 3;
                 break;
             default:
-                original_bytes[0] = decode_1st_char(input_str[input_index], input_str[input_index + 1]);
-                original_bytes[1] = decode_2nd_char(input_str[input_index + 1], input_str[input_index + 2]);
-                original_bytes[2] = decode_3rd_char(input_str[input_index + 2], input_str[input_index + 3]);
+                out[0] = decode_1st_char(input_str[input_index], input_str[input_index + 1]);
+                out[1] = decode_2nd_char(input_str[input_index + 1], input_str[input_index + 2]);
+                out[2] = decode_3rd_char(input_str[input_index + 2], input_str[input_index + 3]);
+                decoded_index += 3;
                 break;
         }
 
-        decoded_bytes[decoded_index]     = original_bytes[0];
-        decoded_bytes[decoded_index + 1] = original_bytes[1];
-        decoded_bytes[decoded_index + 2] = original_bytes[2];
-
         input_index += 4;
-        decoded_index += 3;
 
         remaining_inputs -= 4;
     }
 
-    return 0;
+    return decoded_index;
 }
