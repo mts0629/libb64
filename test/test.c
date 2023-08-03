@@ -82,12 +82,23 @@ void test_decoding_output_lacking_1byte(void) {
 }
 
 void test_decoding_output_lacking_2bytes(void) {
-    char b64_str[] = "//=";
+    char b64_str[] = "//==";
     uint8_t original_bytes[] = { 0xff, 0xf0 };
 
     uint8_t decoded_bytes[2];
     size_t size = b64_decode(decoded_bytes, b64_str, sizeof(b64_str));
     assert(size == 2);
+
+    assert(MEM_EQ(original_bytes, decoded_bytes, size));
+}
+
+void test_decoding_output_lacking_3bytes(void) {
+    char b64_str[] = "/===";
+    uint8_t original_bytes[] = { 0xfc };
+
+    uint8_t decoded_bytes[1];
+    size_t size = b64_decode(decoded_bytes, b64_str, sizeof(b64_str));
+    assert(size == 1);
 
     assert(MEM_EQ(original_bytes, decoded_bytes, size));
 }
@@ -107,6 +118,7 @@ int main(void) {
     RUN_TEST(test_decoding_all_b64_chars);
     RUN_TEST(test_decoding_output_lacking_1byte);
     RUN_TEST(test_decoding_output_lacking_2bytes);
+    RUN_TEST(test_decoding_output_lacking_3bytes);
 
     RUN_TEST(test_decoding_fails_by_invalid_string);
 
