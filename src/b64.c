@@ -123,7 +123,7 @@ size_t b64_decode(uint8_t* decoded_bytes, const char* input_str, const size_t in
     bool input_is_terminated = false;
 
     while (input_index < input_size_in_bytes) {
-        uint8_t* current_input = &input_str[input_index];
+        const char* current_input = &input_str[input_index];
         if ((*current_input == '\0') || input_is_terminated) {
             break;
         }
