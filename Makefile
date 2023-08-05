@@ -22,14 +22,14 @@ endif
 BUILD_DIR := build/$(CONFIG)
 
 SRCS := $(wildcard $(SRC_DIR)/*.c)
-OBJS := $(addprefix $(BUILD_DIR), /$(SRCS:.c=.o))
+OBJS := $(addprefix $(BUILD_DIR)/, $(SRCS:.c=.o))
 
 TEST_SRCS := $(wildcard $(TEST_DIR)/*.c)
-TEST_OBJS := $(addprefix $(BUILD_DIR), /$(TEST_SRCS:.c=.o))
+TEST_OBJS := $(addprefix $(BUILD_DIR)/, $(TEST_SRCS:.c=.o))
 TARGET_TEST := $(BUILD_DIR)/test_runner
 
 SAMPLE_SRCS := $(wildcard $(SAMPLE_DIR)/*.c)
-SAMPLES := $(addprefix $(BUILD_DIR), /$(SAMPLE_SRCS:.c=))
+SAMPLES := $(addprefix $(BUILD_DIR)/, $(SAMPLE_SRCS:.c=))
 
 RM := rm -rf
 
