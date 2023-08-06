@@ -9,12 +9,11 @@
 static char encoding_table[] = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
     'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-    'U', 'V', 'W', 'X', 'Y', 'Z',
-    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-    'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-    'u', 'v', 'w', 'x', 'y', 'z',
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-    '+', '/'
+    'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd',
+    'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+    'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+    'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7',
+    '8', '9', '+', '/'
 };
 
 static char encode_to_1st_char(const uint8_t byte) {
@@ -41,30 +40,27 @@ size_t b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t in
 
     while (input_index < input_size_in_bytes) {
         // Convert 3 input characters to 4 base64-encoded characters
-        char b64_chars[4] = { '\0' };
-        b64_chars[0] = encode_to_1st_char(input_bytes[input_index]);
+        const uint8_t* current_input = &input_bytes[input_index];
+        char* current_output = &encoded_str[encoded_index];
+
+        current_output[0] = encode_to_1st_char(current_input[0]);
         switch (remaining_inputs) {
             case 1:
-                b64_chars[1] = encode_to_2nd_char(input_bytes[input_index], 0x00);
-                b64_chars[2] = '=';
-                b64_chars[3] = '=';
+                current_output[1] = encode_to_2nd_char(current_input[0], 0x00);
+                current_output[2] = '=';
+                current_output[3] = '=';
                 break;
             case 2:
-                b64_chars[1] = encode_to_2nd_char(input_bytes[input_index], input_bytes[input_index + 1]);
-                b64_chars[2] = encode_to_3rd_char(input_bytes[input_index + 1], 0x00);
-                b64_chars[3] = '=';
+                current_output[1] = encode_to_2nd_char(current_input[0], current_input[1]);
+                current_output[2] = encode_to_3rd_char(current_input[1], 0x00);
+                current_output[3] = '=';
                 break;
             default:
-                b64_chars[1] = encode_to_2nd_char(input_bytes[input_index], input_bytes[input_index + 1]);
-                b64_chars[2] = encode_to_3rd_char(input_bytes[input_index + 1], input_bytes[input_index + 2]);
-                b64_chars[3] = encode_to_4th_char(input_bytes[input_index + 2]);
+                current_output[1] = encode_to_2nd_char(current_input[0], current_input[1]);
+                current_output[2] = encode_to_3rd_char(current_input[1], current_input[2]);
+                current_output[3] = encode_to_4th_char(current_input[2]);
                 break;
         }
-
-        encoded_str[encoded_index]     = b64_chars[0];
-        encoded_str[encoded_index + 1] = b64_chars[1];
-        encoded_str[encoded_index + 2] = b64_chars[2];
-        encoded_str[encoded_index + 3] = b64_chars[3];
 
         input_index += 3;
         encoded_index += 4;
