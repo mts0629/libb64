@@ -129,8 +129,8 @@ size_t b64_decode(uint8_t* decoded_bytes, const char* input_str, const size_t in
         }
 
         const int max_num_to_decode = (remaining_inputs >= 4) ? 4 : remaining_inputs;
-        int num_to_decode;
-        for (num_to_decode = 0; num_to_decode < max_num_to_decode; ++num_to_decode) {
+        int num_to_decode = 0;
+        while (num_to_decode < max_num_to_decode) {
             // Decoding fails when an input string contains invalid character
             if (!is_valid_b64_char(current_input[num_to_decode])) {
                 return 0;
@@ -140,31 +140,35 @@ size_t b64_decode(uint8_t* decoded_bytes, const char* input_str, const size_t in
                 input_is_terminated = true;
                 break;
             }
+            ++num_to_decode;
+        }
+
+        // If num_to_decode == 1, the length of the original input bytes is less than 1byte
+        // and the encoding fails
+        if (num_to_decode == 1) {
+            return 0;
         }
 
         // Convert 4 input characters to 3 base64-decoded bytes
         uint8_t* current_output = &decoded_bytes[output_index];
         switch (num_to_decode) {
-            case 1:
-                current_output[0] = decode_to_1st_byte(current_input[0], '\0');
-                output_index += 1;
-                break;
             case 2:
                 current_output[0] = decode_to_1st_byte(current_input[0], current_input[1]);
-                current_output[1] = decode_to_2nd_byte(current_input[1], '\0');
-                output_index += 2;
+                output_index += 1;
                 break;
             case 3:
                 current_output[0] = decode_to_1st_byte(current_input[0], current_input[1]);
                 current_output[1] = decode_to_2nd_byte(current_input[1], current_input[2]);
-                current_output[2] = decode_to_3rd_byte(current_input[2], '\0');
-                output_index += 3;
+                output_index += 2;
                 break;
-            default:
+            case 4:
                 current_output[0] = decode_to_1st_byte(current_input[0], current_input[1]);
                 current_output[1] = decode_to_2nd_byte(current_input[1], current_input[2]);
                 current_output[2] = decode_to_3rd_byte(current_input[2], current_input[3]);
                 output_index += 3;
+                break;
+            default:
+                return 0;
                 break;
         }
 

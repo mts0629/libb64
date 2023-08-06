@@ -43,7 +43,7 @@ void test_encoding_all_b64_chars(void) {
     assert(STR_EQ(STR_OF_ALL_B64_CHARS, encoded_str));
 }
 
-void test_encoding_input_lacking_1byte(void) {
+void test_encoding_2bytes_input(void) {
     uint8_t input_bytes[] = { 0xff, 0xff };
     char b64_str[4 + 1];
 
@@ -52,7 +52,7 @@ void test_encoding_input_lacking_1byte(void) {
     assert(STR_EQ("//8=", b64_str));
 }
 
-void test_encoding_input_lacking_2bytes(void) {
+void test_encoding_1byte_input(void) {
     uint8_t input_bytes[] = { 0xff };
     char b64_str[4 + 1];
 
@@ -70,20 +70,9 @@ void test_decoding_all_b64_chars(void) {
     assert(MEM_EQ(BYTES_FOR_ALL_B64_CHARS, decoded_bytes, size));
 }
 
-void test_decoding_output_lacking_1byte(void) {
-    char b64_str[] = "///=";
-    uint8_t original_bytes[] = { 0xff, 0xff, 0xc0 };
-
-    uint8_t decoded_bytes[3];
-    size_t size = b64_decode(decoded_bytes, b64_str, sizeof(b64_str));
-    assert(size == 3);
-
-    assert(MEM_EQ(original_bytes, decoded_bytes, size));
-}
-
-void test_decoding_output_lacking_2bytes(void) {
-    char b64_str[] = "//==";
-    uint8_t original_bytes[] = { 0xff, 0xf0 };
+void test_decoding_remaining_2bytes(void) {
+    char b64_str[] = "//8=";
+    uint8_t original_bytes[] = { 0xff, 0xff };
 
     uint8_t decoded_bytes[2];
     size_t size = b64_decode(decoded_bytes, b64_str, sizeof(b64_str));
@@ -92,15 +81,22 @@ void test_decoding_output_lacking_2bytes(void) {
     assert(MEM_EQ(original_bytes, decoded_bytes, size));
 }
 
-void test_decoding_output_lacking_3bytes(void) {
-    char b64_str[] = "/===";
-    uint8_t original_bytes[] = { 0xfc };
+void test_decoding_remaining_1byte(void) {
+    char b64_str[] = "/w==";
+    uint8_t original_bytes[] = { 0xff };
 
     uint8_t decoded_bytes[1];
     size_t size = b64_decode(decoded_bytes, b64_str, sizeof(b64_str));
     assert(size == 1);
 
     assert(MEM_EQ(original_bytes, decoded_bytes, size));
+}
+
+void test_decoding_fails_less_than_1byte(void) {
+    char b64_str[] = "/===";
+
+    uint8_t decoded_bytes;
+    assert(b64_decode(&decoded_bytes, b64_str, sizeof(b64_str)) == 0);
 }
 
 void test_decoding_fails_by_invalid_string(void) {
@@ -111,15 +107,14 @@ void test_decoding_fails_by_invalid_string(void) {
 
 int main(void) {
     RUN_TEST(test_encoding_all_b64_chars);
-
-    RUN_TEST(test_encoding_input_lacking_1byte);
-    RUN_TEST(test_encoding_input_lacking_2bytes);
+    RUN_TEST(test_encoding_2bytes_input);
+    RUN_TEST(test_encoding_1byte_input);
 
     RUN_TEST(test_decoding_all_b64_chars);
-    RUN_TEST(test_decoding_output_lacking_1byte);
-    RUN_TEST(test_decoding_output_lacking_2bytes);
-    RUN_TEST(test_decoding_output_lacking_3bytes);
+    RUN_TEST(test_decoding_remaining_2bytes);
+    RUN_TEST(test_decoding_remaining_1byte);
 
+    RUN_TEST(test_decoding_fails_less_than_1byte);
     RUN_TEST(test_decoding_fails_by_invalid_string);
 
     return 0;
