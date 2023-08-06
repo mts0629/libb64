@@ -59,10 +59,15 @@ int main(int argc, char *argv[]) {
 
     if (argc < 2) {
         fprintf(stderr, "Error: input file is not specified\n");
+        fprintf(stdout, "usage: %s input_file [output_name]('encoded.txt')\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
     char *fname = argv[1];
+    char *out_fname = "encoded.txt";
+    if (argc == 3) {
+        out_fname = argv[2];
+    }
 
     long fsize = get_file_size(fname);
     if (fsize == -1) {
@@ -90,23 +95,22 @@ int main(int argc, char *argv[]) {
 
     fclose(fp);
 
-    size_t encoded_size = (size_t)(fsize * 1.34);
-    encoded_str = malloc(sizeof(char) * encoded_size);
+    size_t max_encoded_size = (size_t)(fsize * 2);
+    encoded_str = malloc(sizeof(char) * max_encoded_size);
     if (encoded_str == NULL) {
         fprintf(stderr, "Error: failed to allocate memory\n");
         exit(EXIT_FAILURE);
     }
 
-    b64_encode(encoded_str, input_bytes, (size_t)fsize);
+    size_t osize = b64_encode(encoded_str, input_bytes, (size_t)fsize);
 
-    printf("Base64 encoding of %s is finished.\n", fname);
+    printf("Base64 encoding of %s is finished (%lu to %lu bytes).\n", fname, read_size, osize);
 
-    char *out_fname = "encoded.txt";
     if (!write_b64_str_to_file(encoded_str, out_fname)) {
         exit(EXIT_FAILURE);
     }
 
-    printf("The string is written to %s.\n", out_fname);
+    printf("The string is written to '%s'.\n", out_fname);
 
     return EXIT_SUCCESS;
 }
