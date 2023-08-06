@@ -34,11 +34,12 @@ ar rc build/release/libb64.a build/release/src/b64.o
 gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 build/release/test/test.o -L./build/release -lb64 -o build/release/test_runner
 ./build/release/test_runner
 test_encoding_all_b64_chars ... finished
-test_encoding_input_lacking_1byte ... finished
-test_encoding_input_lacking_2bytes ... finished
+test_encoding_2bytes_input ... finished
+test_encoding_1byte_input ... finished
 test_decoding_all_b64_chars ... finished
-test_decoding_output_lacking_1byte ... finished
-test_decoding_output_lacking_2bytes ... finished
+test_decoding_remaining_2bytes ... finished
+test_decoding_remaining_1byte ... finished
+test_decoding_fails_less_than_1byte ... finished
 test_decoding_fails_by_invalid_string ... finished
 ```
 
@@ -80,10 +81,10 @@ void decode_sample(void) {
     // Output byte array of sufficient byte size
     uint8_t decoded_bytes[7];
 
-    b64_decode(decoded_bytes, base64_str, sizeof(base64_str));
+    size_t size = b64_decode(decoded_bytes, base64_str, sizeof(base64_str));
 
     // "0x41,0x42,0x43,0x44,0x45,0x46,0x47,"
-    for (int i = 0; i < 7; ++i) {
+    for (size_t i = 0; i < size; ++i) {
         printf("0x%2x,", decoded_bytes);
     }
     putchar('\n');
@@ -92,16 +93,33 @@ void decode_sample(void) {
 
 ## Sample
 
-Build sample programs in `sample`.
+Build sample encoder/decoder programs in `sample`.
 
 ```sh
 $ make sample
 gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 -c src/b64.c -o build/release/src/b64.o
 ar rc build/release/libb64.a build/release/src/b64.o
+gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 sample/b64_decoder.c -L./build/release -lb64 -o build/release/sample/b64_decoder
 gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 sample/b64_encoder.c -L./build/release -lb64 -o build/release/sample/b64_encoder
 ```
 
-## TODO
+Run encoding:
 
-- Change to return decoded size
-- Fix decoding process
+```sh
+$ ./build/release/sample/b64_encoder ./sample/Pepper.bmp ./sample/encoded.txt
+Base64 encoding of ./sample/Pepper.bmp is finished (196662 to 262216 bytes).
+The string is written to './sample/encoded.txt'.
+$ cat output.txt
+k02AAMAAAAAADYAAAAoAAAAAAEAAAABAAABABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABcMHN+L3KAImd4KpKUWL26VbG3NbW5P8DGWMjEXs3HUsrDIU8rJUdHGWdDMU9LK
+...
+```
+
+Run decoding:
+
+```sh
+$ ./build/release/sample/b64_decoder ./sample/encoded.txt ./sample/decoded.bin
+Base64 decoding of ./sample/encoded.txt is finished (262216 to 196662 bytes).
+The byte expression is written to './sample/decoded.bin'.
+
+$ diff ./sample/Pepper.bmp ./sample/decoded.bin  # Same
+```
