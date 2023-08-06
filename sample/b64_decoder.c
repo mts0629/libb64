@@ -6,8 +6,8 @@
 #include "b64.h"
 
 // Get the byte size of the file
-long get_file_size(const char *file) {
-    FILE *fp = fopen(file, "rb");
+long get_file_size(const char* file) {
+    FILE* fp = fopen(file, "rb");
     if (fp == NULL) {
         fprintf(stderr, "Error: failed to open %s\n", file);
         return -1;
@@ -26,8 +26,8 @@ long get_file_size(const char *file) {
     return -1;
 }
 
-char *input_chars = NULL;
-uint8_t *decoded_bytes = NULL;
+char* input_chars = NULL;
+uint8_t* decoded_bytes = NULL;
 
 // Free dynamically allocated memories
 void free_memories(void) {
@@ -36,8 +36,8 @@ void free_memories(void) {
 }
 
 // Write base64 decoded bytes to a file
-bool write_decoded_bytes_to_file(const uint8_t *decoded_bytes, const size_t size, const char *fname) {
-    FILE *fp = fopen(fname,"wb");
+bool write_decoded_bytes_to_file(const uint8_t* decoded_bytes, const size_t size, const char* fname) {
+    FILE* fp = fopen(fname,"wb");
     if (fp == NULL) {
         fprintf(stderr, "Error: failed to open %s\n", fname);
         return false;
@@ -50,7 +50,7 @@ bool write_decoded_bytes_to_file(const uint8_t *decoded_bytes, const size_t size
     return true;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     atexit(free_memories);
 
     if (argc < 2) {
@@ -59,8 +59,8 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    char *fname = argv[1];
-    char *out_fname = "decoded.bin";
+    const char* fname = argv[1];
+    const char* out_fname = "decoded.bin";
     if (argc == 3) {
         out_fname = argv[2];
     }
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    FILE *fp = fopen(fname, "rb");
+    FILE* fp = fopen(fname, "rb");
     if (fp == NULL) {
         fprintf(stderr, "Error: failed to open %s\n", fname);
         exit(EXIT_FAILURE);
