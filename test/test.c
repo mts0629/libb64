@@ -64,7 +64,7 @@ void test_encoding_1byte_input(void) {
 void test_decoding_all_b64_chars(void) {
     uint8_t decoded_bytes[48] = { 0 };
 
-    size_t size = b64_decode(decoded_bytes, STR_OF_ALL_B64_CHARS, sizeof(STR_OF_ALL_B64_CHARS));
+    size_t size = b64_decode(decoded_bytes, STR_OF_ALL_B64_CHARS);
     assert(size == 48);
 
     assert(MEM_EQ(BYTES_FOR_ALL_B64_CHARS, decoded_bytes, size));
@@ -75,7 +75,7 @@ void test_decoding_remaining_2bytes(void) {
     uint8_t original_bytes[] = { 0xff, 0xff };
 
     uint8_t decoded_bytes[2];
-    size_t size = b64_decode(decoded_bytes, b64_str, sizeof(b64_str));
+    size_t size = b64_decode(decoded_bytes, b64_str);
     assert(size == 2);
 
     assert(MEM_EQ(original_bytes, decoded_bytes, size));
@@ -86,7 +86,7 @@ void test_decoding_remaining_1byte(void) {
     uint8_t original_bytes[] = { 0xff };
 
     uint8_t decoded_bytes[1];
-    size_t size = b64_decode(decoded_bytes, b64_str, sizeof(b64_str));
+    size_t size = b64_decode(decoded_bytes, b64_str);
     assert(size == 1);
 
     assert(MEM_EQ(original_bytes, decoded_bytes, size));
@@ -96,13 +96,13 @@ void test_decoding_fails_less_than_1byte(void) {
     char b64_str[] = "/===";
 
     uint8_t decoded_bytes;
-    assert(b64_decode(&decoded_bytes, b64_str, sizeof(b64_str)) == 0);
+    assert(b64_decode(&decoded_bytes, b64_str) == 0);
 }
 
 void test_decoding_fails_by_invalid_string(void) {
     uint8_t decoded_bytes[32] = { 0 };
 
-    assert(b64_decode(decoded_bytes, "????", sizeof("????")) == 0);
+    assert(b64_decode(decoded_bytes, "????") == 0);
 }
 
 int main(void) {

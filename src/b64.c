@@ -111,16 +111,16 @@ static uint8_t decode_to_3rd_byte(const char char1, const char char2) {
     return ((decode_b64_char(char1) & 0x03) << 6) | (decode_b64_char(char2) & 0x3f);
 }
 
-size_t b64_decode(uint8_t* decoded_bytes, const char* input_str, const size_t input_size_in_bytes) {
+size_t b64_decode(uint8_t* decoded_bytes, const char* input_str) {
     size_t input_index = 0;
     size_t output_index = 0;
 
-    size_t remaining_inputs = input_size_in_bytes;
+    size_t remaining_inputs = strlen(input_str);
     bool input_is_terminated = false;
 
-    while (input_index < input_size_in_bytes) {
+    while (!input_is_terminated) {
         const char* current_input = &input_str[input_index];
-        if ((*current_input == '\0') || input_is_terminated) {
+        if (*current_input == '\0') {
             break;
         }
 

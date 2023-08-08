@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    size_t decoded_size = b64_decode(decoded_bytes, input_chars, read_size);
+    size_t decoded_size = b64_decode(decoded_bytes, input_chars);
 
     printf("Base64 decoding of %s is finished (%lu to %lu bytes).\n", fname, read_size, decoded_size);
 
