@@ -116,13 +116,9 @@ size_t b64_decode(uint8_t* decoded_bytes, const char* input_str) {
     size_t output_index = 0;
 
     size_t remaining_inputs = strlen(input_str);
-    bool input_is_terminated = false;
 
-    while (!input_is_terminated) {
+    while (remaining_inputs > 0) {
         const char* current_input = &input_str[input_index];
-        if (*current_input == '\0') {
-            break;
-        }
 
         const int max_num_to_decode = (remaining_inputs >= 4) ? 4 : remaining_inputs;
         int num_to_decode = 0;
@@ -133,39 +129,43 @@ size_t b64_decode(uint8_t* decoded_bytes, const char* input_str) {
             }
             // Byte stream is finished when an input string contains '='
             if (current_input[num_to_decode] == '=') {
-                input_is_terminated = true;
+                break;
+            }
+            // Finish decoding when reached to NUL ('\0')
+            if (current_input[num_to_decode] == '\0') {
                 break;
             }
             ++num_to_decode;
         }
 
-        // If num_to_decode == 1, the length of the original input bytes is less than 1byte
-        // and the encoding fails
-        if (num_to_decode == 1) {
-            return 0;
-        }
-
-        // Convert 4 input characters to 3 base64-decoded bytes
-        uint8_t* current_output = &decoded_bytes[output_index];
-        switch (num_to_decode) {
-            case 2:
-                current_output[0] = decode_to_1st_byte(current_input[0], current_input[1]);
-                output_index += 1;
-                break;
-            case 3:
-                current_output[0] = decode_to_1st_byte(current_input[0], current_input[1]);
-                current_output[1] = decode_to_2nd_byte(current_input[1], current_input[2]);
-                output_index += 2;
-                break;
-            case 4:
-                current_output[0] = decode_to_1st_byte(current_input[0], current_input[1]);
-                current_output[1] = decode_to_2nd_byte(current_input[1], current_input[2]);
-                current_output[2] = decode_to_3rd_byte(current_input[2], current_input[3]);
-                output_index += 3;
-                break;
-            default:
-                return 0;
-                break;
+        if (num_to_decode > 0) {
+            // Convert 4 input characters to 3 base64-decoded bytes
+            uint8_t* current_output = &decoded_bytes[output_index];
+            switch (num_to_decode) {
+                case 1:
+                    // If num_to_decode == 1, the length of the original input bytes is less than 1byte
+                    // and the encoding fails
+                    return 0;
+                    break;
+                case 2:
+                    current_output[0] = decode_to_1st_byte(current_input[0], current_input[1]);
+                    output_index += 1;
+                    break;
+                case 3:
+                    current_output[0] = decode_to_1st_byte(current_input[0], current_input[1]);
+                    current_output[1] = decode_to_2nd_byte(current_input[1], current_input[2]);
+                    output_index += 2;
+                    break;
+                case 4:
+                    current_output[0] = decode_to_1st_byte(current_input[0], current_input[1]);
+                    current_output[1] = decode_to_2nd_byte(current_input[1], current_input[2]);
+                    current_output[2] = decode_to_3rd_byte(current_input[2], current_input[3]);
+                    output_index += 3;
+                    break;
+                default:
+                    return 0;
+                    break;
+            }
         }
 
         input_index += 4;

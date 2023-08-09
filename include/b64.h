@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 /**
- * @brief Encode byte array by base64
+ * @brief Encode byte array by Base64
  * 
  * @param[out] encoded_str Base64-encoded output string
  * @param[in] input_bytes Input byte array
@@ -15,10 +15,10 @@
 size_t b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes);
 
 /**
- * @brief Decode base64 string
+ * @brief Decode Base64 string
  * 
- * @param[out] decoded_bytes Base64-decoded byte array
- * @param[in] input_str Input string, NULL-terminated
+ * @param[out] decoded_bytes Decoded byte array
+ * @param[in] input_str Base64-encoded input string, NULL-terminated
  * @return Byte size of the decoded byte array
  * @retval 0 Decoding failed
  */
