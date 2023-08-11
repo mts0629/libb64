@@ -77,10 +77,10 @@ void decode_sample(void) {
     // Output byte array of sufficient byte size
     uint8_t decoded_bytes[7];
 
-    size_t size = b64_decode(decoded_bytes, base64_str);
+    int size = b64_decode(decoded_bytes, base64_str);
 
     // "0x41,0x42,0x43,0x44,0x45,0x46,0x47,"
-    for (size_t i = 0; i < size; ++i) {
+    for (int i = 0; i < size; ++i) {
         printf("0x%2x,", decoded_bytes);
     }
     putchar('\n');

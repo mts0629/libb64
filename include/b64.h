@@ -12,7 +12,7 @@
  * @param[in] input_size_in_bytes Input size in bytes
  * @return Byte size of the encoded string, NULL-terminated
  */
-size_t b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes);
+int b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes);
 
 /**
  * @brief Encode byte array by URL-safe Base64
@@ -22,7 +22,7 @@ size_t b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t in
  * @param[in] input_size_in_bytes Input size in bytes
  * @return Byte size of the encoded string, NULL-terminated
  */
-size_t b64_url_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes);
+int b64_url_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes);
 
 /**
  * @brief Decode Base64 string
@@ -32,7 +32,7 @@ size_t b64_url_encode(char* encoded_str, const uint8_t* input_bytes, const size_
  * @return Byte size of the decoded byte array
  * @retval 0 Decoding failed
  */
-size_t b64_decode(uint8_t* decoded_bytes, const char* input_str);
+int b64_decode(uint8_t* decoded_bytes, const char* input_str);
 
 /**
  * @brief Decode URL-safe Base64 string
@@ -42,6 +42,6 @@ size_t b64_decode(uint8_t* decoded_bytes, const char* input_str);
  * @return Byte size of the decoded byte array
  * @retval 0 Decoding failed
  */
-size_t b64_url_decode(uint8_t* decoded_bytes, const char* input_str);
+int b64_url_decode(uint8_t* decoded_bytes, const char* input_str);
 
 #endif // B64_H

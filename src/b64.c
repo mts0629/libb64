@@ -35,11 +35,11 @@ static char encode_to_4th_char(const uint8_t byte) {
     return encoding_table[byte & 0x3f];
 }
 
-static size_t encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes, const bool use_padding) {
-    size_t input_index = 0;
-    size_t encoded_index = 0;
+static int encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes, const bool use_padding) {
+    int input_index = 0;
+    int encoded_index = 0;
 
-    size_t remaining_inputs = input_size_in_bytes;
+    int remaining_inputs = (int)input_size_in_bytes;
 
     while (input_index < input_size_in_bytes) {
         // Convert 3 input characters to 4 base64-encoded characters
@@ -103,12 +103,12 @@ static inline set_url_encoding_chars(void) {
     set_last2_encoding_chars('-', '_');
 }
 
-size_t b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
+int b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
     set_standard_encoding_chars();
     return encode(encoded_str, input_bytes, input_size_in_bytes, true);
 }
 
-size_t b64_url_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
+int b64_url_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
     set_url_encoding_chars();
     return encode(encoded_str, input_bytes, input_size_in_bytes, false);
 }
@@ -150,11 +150,11 @@ static uint8_t decode_to_3rd_byte(const char char1, const char char2) {
     return ((decode_b64_char(char1) & 0x03) << 6) | (decode_b64_char(char2) & 0x3f);
 }
 
-static size_t decode(uint8_t* decoded_bytes, const char* input_str) {
-    size_t input_index = 0;
-    size_t output_index = 0;
+static int decode(uint8_t* decoded_bytes, const char* input_str) {
+    int input_index = 0;
+    int output_index = 0;
 
-    size_t remaining_inputs = strlen(input_str);
+    int remaining_inputs = (int)strlen(input_str);
 
     while (remaining_inputs > 0) {
         const char* current_input = &input_str[input_index];
@@ -209,22 +209,18 @@ static size_t decode(uint8_t* decoded_bytes, const char* input_str) {
 
         input_index += 4;
 
-        if (remaining_inputs <= 4) {
-            break;
-        }
-
         remaining_inputs -= 4;
     }
 
     return output_index;
 }
 
-size_t b64_decode(uint8_t* decoded_bytes, const char* input_str) {
+int b64_decode(uint8_t* decoded_bytes, const char* input_str) {
     set_standard_encoding_chars();
     return decode(decoded_bytes, input_str);
 }
 
-size_t b64_url_decode(uint8_t* decoded_bytes, const char* input_str) {
+int b64_url_decode(uint8_t* decoded_bytes, const char* input_str) {
     set_url_encoding_chars();
     return decode(decoded_bytes, input_str);
 }

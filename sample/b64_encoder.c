@@ -102,9 +102,9 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    size_t osize = b64_encode(encoded_str, input_bytes, (size_t)fsize);
+    int osize = b64_encode(encoded_str, input_bytes, (size_t)fsize);
 
-    printf("Base64 encoding of %s is finished (%lu to %lu bytes).\n", fname, read_size, osize);
+    printf("Base64 encoding of %s is finished (%lu to %d bytes).\n", fname, read_size, osize);
 
     if (!write_b64_str_to_file(encoded_str, out_fname)) {
         exit(EXIT_FAILURE);

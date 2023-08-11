@@ -97,11 +97,11 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    size_t decoded_size = b64_decode(decoded_bytes, input_chars);
+    int decoded_size = b64_decode(decoded_bytes, input_chars);
 
-    printf("Base64 decoding of %s is finished (%lu to %lu bytes).\n", fname, read_size, decoded_size);
+    printf("Base64 decoding of %s is finished (%lu to %d bytes).\n", fname, read_size, decoded_size);
 
-    if (!write_decoded_bytes_to_file(decoded_bytes, decoded_size, out_fname)) {
+    if (!write_decoded_bytes_to_file(decoded_bytes, (size_t)decoded_size, out_fname)) {
         exit(EXIT_FAILURE);
     }
 
