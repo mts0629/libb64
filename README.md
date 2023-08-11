@@ -2,7 +2,7 @@
 
 ## Description
 
-Base64 encoding / decoding with C
+Base64 encoding / decoding static library with C
 
 ## Requirements
 
@@ -36,11 +36,7 @@ gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 build/release/test/test.o 
 test_encoding_all_b64_chars ... finished
 test_encoding_2bytes_input ... finished
 test_encoding_1byte_input ... finished
-test_decoding_all_b64_chars ... finished
-test_decoding_remaining_2bytes ... finished
-test_decoding_remaining_1byte ... finished
-test_decoding_fails_less_than_1byte ... finished
-test_decoding_fails_by_invalid_string ... finished
+...
 ```
 
 Test with debug build options can be with: `make test DEBUG=yes`.
@@ -90,6 +86,10 @@ void decode_sample(void) {
     putchar('\n');
 }
 ```
+
+### URL-safe encoding
+
+Provide URL-safe encoding / decoding (`-` and `_` are used instead of `+` and `/`, and padding is not used) by `b64_url_encode` and `b64_url_decode`.
 
 ## Sample
 

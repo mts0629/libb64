@@ -33,7 +33,11 @@ static uint8_t BYTES_FOR_ALL_B64_CHARS[] = {
     0xf3, 0xdf, 0xbf
 };
 
-static char STR_OF_ALL_B64_CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static char STR_OF_ALL_B64_CHARS[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static char STR_OF_ALL_B64_CHARS_URL_SAFE[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
 void test_encoding_all_b64_chars(void) {
     char encoded_str[64 + 1] = { '\0' };
@@ -59,6 +63,32 @@ void test_encoding_1byte_input(void) {
     assert(b64_encode(b64_str, input_bytes, sizeof(input_bytes)) == 4);
 
     assert(STR_EQ("/w==", b64_str));
+}
+
+void test_url_encoding_all_b64_chars(void) {
+    char encoded_str[64 + 1] = { '\0' };
+
+    assert(b64_url_encode(encoded_str, BYTES_FOR_ALL_B64_CHARS, sizeof(BYTES_FOR_ALL_B64_CHARS)) == 64);
+
+    assert(STR_EQ(STR_OF_ALL_B64_CHARS_URL_SAFE, encoded_str));
+}
+
+void test_url_encoding_2bytes_input(void) {
+    uint8_t input_bytes[] = { 0xff, 0xff };
+    char b64_str[3 + 1];
+
+    assert(b64_url_encode(b64_str, input_bytes, sizeof(input_bytes)) == 3);
+
+    assert(STR_EQ("__8", b64_str));
+}
+
+void test_url_encoding_1byte_input(void) {
+    uint8_t input_bytes[] = { 0xff };
+    char b64_str[2 + 1];
+
+    assert(b64_url_encode(b64_str, input_bytes, sizeof(input_bytes)) == 2);
+
+    assert(STR_EQ("_w", b64_str));
 }
 
 void test_decoding_all_b64_chars(void) {
@@ -92,6 +122,37 @@ void test_decoding_remaining_1byte(void) {
     assert(MEM_EQ(original_bytes, decoded_bytes, size));
 }
 
+void test_url_decoding_all_b64_chars(void) {
+    uint8_t decoded_bytes[48] = { 0 };
+
+    size_t size = b64_url_decode(decoded_bytes, STR_OF_ALL_B64_CHARS_URL_SAFE);
+    assert(size == 48);
+
+    assert(MEM_EQ(BYTES_FOR_ALL_B64_CHARS, decoded_bytes, size));
+}
+
+void test_url_decoding_remaining_2bytes(void) {
+    char b64_str[] = "__8";
+    uint8_t original_bytes[] = { 0xff, 0xff };
+
+    uint8_t decoded_bytes[2];
+    size_t size = b64_url_decode(decoded_bytes, b64_str);
+    assert(size == 2);
+
+    assert(MEM_EQ(original_bytes, decoded_bytes, size));
+}
+
+void test_url_decoding_remaining_1byte(void) {
+    char b64_str[] = "_w";
+    uint8_t original_bytes[] = { 0xff };
+
+    uint8_t decoded_bytes[1];
+    size_t size = b64_url_decode(decoded_bytes, b64_str);
+    assert(size == 1);
+
+    assert(MEM_EQ(original_bytes, decoded_bytes, size));
+}
+
 void test_decoding_fails_less_than_1byte(void) {
     char b64_str[] = "/===";
 
@@ -110,9 +171,17 @@ int main(void) {
     RUN_TEST(test_encoding_2bytes_input);
     RUN_TEST(test_encoding_1byte_input);
 
+    RUN_TEST(test_url_encoding_all_b64_chars);
+    RUN_TEST(test_url_encoding_2bytes_input);
+    RUN_TEST(test_url_encoding_1byte_input);
+
     RUN_TEST(test_decoding_all_b64_chars);
     RUN_TEST(test_decoding_remaining_2bytes);
     RUN_TEST(test_decoding_remaining_1byte);
+
+    RUN_TEST(test_url_decoding_all_b64_chars);
+    RUN_TEST(test_url_decoding_remaining_2bytes);
+    RUN_TEST(test_url_decoding_remaining_1byte);
 
     RUN_TEST(test_decoding_fails_less_than_1byte);
     RUN_TEST(test_decoding_fails_by_invalid_string);
