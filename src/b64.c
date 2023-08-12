@@ -41,7 +41,7 @@ static int encode(char* encoded_str, const uint8_t* input_bytes, const size_t in
 
     int remaining_inputs = (int)input_size_in_bytes;
 
-    while (input_index < input_size_in_bytes) {
+    while (remaining_inputs > 0) {
         // Convert 3 input characters to 4 base64-encoded characters
         const uint8_t* current_input = &input_bytes[input_index];
         char* current_output = &encoded_str[encoded_index];
@@ -168,7 +168,7 @@ static int decode(uint8_t* decoded_bytes, const char* input_str) {
             }
             // Decoding fails when an input string contains invalid character
             if (!is_valid_b64_char(current_input[num_to_decode])) {
-                return 0;
+                return B64_ERROR_INVALID_CHAR;
             }
             // Byte stream is finished when an input string contains the padding character ('=')
             if (current_input[num_to_decode] == padding) {
@@ -184,7 +184,7 @@ static int decode(uint8_t* decoded_bytes, const char* input_str) {
                 case 1:
                     // If num_to_decode == 1, the length of the original input bytes is less than 1byte
                     // and the encoding fails
-                    return 0;
+                    return B64_ERROR_REMAINING_BITS;
                     break;
                 case 2:
                     current_output[0] = decode_to_1st_byte(current_input[0], current_input[1]);

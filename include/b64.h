@@ -5,6 +5,16 @@
 #include <stdint.h>
 
 /**
+ * @def Error by containing invalid Base64 character
+ */
+#define B64_ERROR_INVALID_CHAR -1
+
+/**
+ * @def Error by remaining last bits are not enough to 1 byte
+ */
+#define B64_ERROR_REMAINING_BITS -2
+
+/**
  * @brief Encode byte array by Base64
  * 
  * @param[out] encoded_str Base64-encoded output string
@@ -30,7 +40,8 @@ int b64_url_encode(char* encoded_str, const uint8_t* input_bytes, const size_t i
  * @param[out] decoded_bytes Decoded byte array
  * @param[in] input_str Base64-encoded input string, NULL-terminated
  * @return Byte size of the decoded byte array
- * @retval 0 Decoding failed
+ * @retval B64_ERROR_INVALID_CHAR Input string contains invalid character
+ * @retval B64_ERROR_REMAINING_BITS The last bits are not enough to 1 byte
  */
 int b64_decode(uint8_t* decoded_bytes, const char* input_str);
 
@@ -40,7 +51,8 @@ int b64_decode(uint8_t* decoded_bytes, const char* input_str);
  * @param[out] decoded_bytes Decoded byte array
  * @param[in] input_str URL-safe Base64-encoded input string, NULL-terminated
  * @return Byte size of the decoded byte array
- * @retval 0 Decoding failed
+ * @retval B64_ERROR_INVALID_CHAR Input string contains invalid character
+ * @retval B64_ERROR_REMAINING_BITS The last bits are not enough to 1 byte
  */
 int b64_url_decode(uint8_t* decoded_bytes, const char* input_str);
 

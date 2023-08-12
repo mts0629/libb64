@@ -157,13 +157,13 @@ void test_decoding_fails_less_than_1byte(void) {
     char b64_str[] = "/===";
 
     uint8_t decoded_bytes;
-    assert(b64_decode(&decoded_bytes, b64_str) == 0);
+    assert(b64_decode(&decoded_bytes, b64_str) == B64_ERROR_REMAINING_BITS);
 }
 
 void test_decoding_fails_by_invalid_string(void) {
     uint8_t decoded_bytes[32] = { 0 };
 
-    assert(b64_decode(decoded_bytes, "????") == 0);
+    assert(b64_decode(decoded_bytes, "????") == B64_ERROR_INVALID_CHAR);
 }
 
 int main(void) {
