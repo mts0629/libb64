@@ -39,15 +39,15 @@ static int encode(char* encoded_str, const uint8_t* input_bytes, const size_t in
     int input_index = 0;
     int encoded_index = 0;
 
-    int remaining_inputs = (int)input_size_in_bytes;
+    int num_remaining_inputs = (int)input_size_in_bytes;
 
-    while (remaining_inputs > 0) {
+    while (num_remaining_inputs > 0) {
         // Convert 3 input characters to 4 base64-encoded characters
         const uint8_t* current_input = &input_bytes[input_index];
         char* current_output = &encoded_str[encoded_index];
 
         current_output[0] = encode_to_1st_char(current_input[0]);
-        switch (remaining_inputs) {
+        switch (num_remaining_inputs) {
             case 1:
                 current_output[1] = encode_to_2nd_char(current_input[0], 0x00);
                 if (use_padding) {
@@ -78,7 +78,7 @@ static int encode(char* encoded_str, const uint8_t* input_bytes, const size_t in
 
         input_index += 3;
 
-        remaining_inputs -= 3;
+        num_remaining_inputs -= 3;
     }
 
     // Terminate encoded string
@@ -150,16 +150,16 @@ static uint8_t decode_to_3rd_byte(const char char1, const char char2) {
     return ((decode_b64_char(char1) & 0x03) << 6) | (decode_b64_char(char2) & 0x3f);
 }
 
-static int decode(uint8_t* decoded_bytes, const char* input_str) {
+static int decode(uint8_t* decoded_bytes, const char* input_string) {
     int input_index = 0;
     int output_index = 0;
 
-    int remaining_inputs = (int)strlen(input_str);
+    int num_remaining_inputs = (int)strlen(input_string);
 
-    while (remaining_inputs > 0) {
-        const char* current_input = &input_str[input_index];
+    while (num_remaining_inputs > 0) {
+        const char* current_input = &input_string[input_index];
 
-        const int max_num_to_decode = (remaining_inputs >= 4) ? 4 : remaining_inputs;
+        const int max_num_to_decode = (num_remaining_inputs >= 4) ? 4 : num_remaining_inputs;
         int num_to_decode = 0;
         while (num_to_decode < max_num_to_decode) {
             // Finish decoding when reached to NUL ('\0')
@@ -170,7 +170,7 @@ static int decode(uint8_t* decoded_bytes, const char* input_str) {
             if (!is_valid_b64_char(current_input[num_to_decode])) {
                 return B64_ERROR_INVALID_CHAR;
             }
-            // Byte stream is finished when an input string contains the padding character ('=')
+            // Finish decoding when reached to the padding character ('=')
             if (current_input[num_to_decode] == padding) {
                 break;
             }
@@ -209,18 +209,18 @@ static int decode(uint8_t* decoded_bytes, const char* input_str) {
 
         input_index += 4;
 
-        remaining_inputs -= 4;
+        num_remaining_inputs -= 4;
     }
 
     return output_index;
 }
 
-int b64_decode(uint8_t* decoded_bytes, const char* input_str) {
+int b64_decode(uint8_t* decoded_bytes, const char* input_string) {
     set_standard_encoding_chars();
-    return decode(decoded_bytes, input_str);
+    return decode(decoded_bytes, input_string);
 }
 
-int b64_url_decode(uint8_t* decoded_bytes, const char* input_str) {
+int b64_url_decode(uint8_t* decoded_bytes, const char* input_string) {
     set_url_encoding_chars();
-    return decode(decoded_bytes, input_str);
+    return decode(decoded_bytes, input_string);
 }

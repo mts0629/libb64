@@ -38,22 +38,22 @@ int b64_url_encode(char* encoded_str, const uint8_t* input_bytes, const size_t i
  * @brief Decode Base64 string
  * 
  * @param[out] decoded_bytes Decoded byte array
- * @param[in] input_str Base64-encoded input string, NULL-terminated
+ * @param[in] input_string Base64-encoded input string, NULL-terminated
  * @return Byte size of the decoded byte array
  * @retval B64_ERROR_INVALID_CHAR Input string contains invalid character
  * @retval B64_ERROR_REMAINING_BITS The last bits are not enough to 1 byte
  */
-int b64_decode(uint8_t* decoded_bytes, const char* input_str);
+int b64_decode(uint8_t* decoded_bytes, const char* input_string);
 
 /**
  * @brief Decode URL-safe Base64 string
  * 
  * @param[out] decoded_bytes Decoded byte array
- * @param[in] input_str URL-safe Base64-encoded input string, NULL-terminated
+ * @param[in] input_string URL-safe Base64-encoded input string, NULL-terminated
  * @return Byte size of the decoded byte array
  * @retval B64_ERROR_INVALID_CHAR Input string contains invalid character
  * @retval B64_ERROR_REMAINING_BITS The last bits are not enough to 1 byte
  */
-int b64_url_decode(uint8_t* decoded_bytes, const char* input_str);
+int b64_url_decode(uint8_t* decoded_bytes, const char* input_string);
 
 #endif // B64_H
