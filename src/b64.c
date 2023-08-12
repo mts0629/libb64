@@ -88,18 +88,18 @@ static int encode(char* encoded_str, const uint8_t* input_bytes, const size_t in
 }
 
 // Set the last 2 (62nd and 63rd) encoding character
-static inline set_last2_encoding_chars(const char encoding_char_62nd, const char encoding_char_63rd) {
+static inline void set_last2_encoding_chars(const char encoding_char_62nd, const char encoding_char_63rd) {
     encoding_table[62] = encoding_char_62nd;
     encoding_table[63] = encoding_char_63rd;
 }
 
 // Set the last 2 encoding characters for standard encoding
-static inline set_standard_encoding_chars(void) {
+static inline void set_standard_encoding_chars(void) {
     set_last2_encoding_chars('+', '/');
 }
 
 // Set the last 2 encoding characters for URL-safe encoding
-static inline set_url_encoding_chars(void) {
+static inline void set_url_encoding_chars(void) {
     set_last2_encoding_chars('-', '_');
 }
 
