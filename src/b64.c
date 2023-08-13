@@ -19,6 +19,9 @@ static char encoding_table[] = {
 // Padding character
 static const char padding = '=';
 
+// Max line length of encoded string
+static const int max_line_length = 76;
+
 static char encode_to_1st_char(const uint8_t byte) {
     return encoding_table[(byte & 0xfc) >> 2];
 }
@@ -38,6 +41,8 @@ static char encode_to_4th_char(const uint8_t byte) {
 static int encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes, const bool use_padding) {
     int input_index = 0;
     int encoded_index = 0;
+
+    int num_encoded_chars = 0;
 
     int num_remaining_inputs = (int)input_size_in_bytes;
 
@@ -73,12 +78,21 @@ static int encode(char* encoded_str, const uint8_t* input_bytes, const size_t in
                 current_output[2] = encode_to_3rd_char(current_input[1], current_input[2]);
                 current_output[3] = encode_to_4th_char(current_input[2]);
                 encoded_index += 4;
+                num_encoded_chars += 4;
                 break;
         }
 
         input_index += 3;
 
         num_remaining_inputs -= 3;
+
+        if (num_remaining_inputs > 0) {
+            if ((num_encoded_chars % max_line_length) == 0) {
+                encoded_str[encoded_index] = '\x0d';
+                encoded_str[encoded_index + 1] = '\x0a';
+                encoded_index += 2;
+            }
+        }
     }
 
     // Terminate encoded string
@@ -111,6 +125,11 @@ int b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input
 int b64_url_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
     set_url_encoding_chars();
     return encode(encoded_str, input_bytes, input_size_in_bytes, false);
+}
+
+int b64_mime_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
+    set_standard_encoding_chars();
+    return encode(encoded_str, input_bytes, input_size_in_bytes, true);
 }
 
 // Convert a input character to an index of the base64 encoding table

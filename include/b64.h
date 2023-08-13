@@ -35,6 +35,16 @@ int b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input
 int b64_url_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes);
 
 /**
+ * @brief Encode byte array by Base64 for MIME
+ * 
+ * @param[out] encoded_str URL-safe Base64-encoded output string
+ * @param[in] input_bytes Input byte array
+ * @param[in] input_size_in_bytes Input size in bytes
+ * @return Byte size of the encoded string, NULL-terminated
+ */
+int b64_mime_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes);
+
+/**
  * @brief Decode Base64 string
  * 
  * @param[out] decoded_bytes Decoded byte array
