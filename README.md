@@ -123,3 +123,8 @@ The byte expression is written to './sample/decoded.bin'.
 
 $ diff ./sample/Pepper.bmp ./sample/decoded.bin  # Same
 ```
+
+## TODO
+
+- Add decoding for MIME
+- Create shared library
