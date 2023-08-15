@@ -91,6 +91,10 @@ void decode_sample(void) {
 
 Provide URL-safe encoding / decoding (`-` and `_` are used instead of `+` and `/`, and padding is not used) by `b64_url_encode` and `b64_url_decode`.
 
+### Encoding for MIME
+
+Provide encoding / decoding for MIME (add `CRlF` per 76 charecters, and ignore non-encoded characters) by `b64_mime_encode` and `b64_mime_decode`.
+
 ## Sample
 
 Build sample encoder/decoder programs in `sample`.
@@ -126,5 +130,4 @@ $ diff ./sample/Pepper.bmp ./sample/decoded.bin  # Same
 
 ## TODO
 
-- Add decoding for MIME
 - Create shared library

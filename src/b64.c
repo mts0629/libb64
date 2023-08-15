@@ -22,6 +22,13 @@ static const char padding = '=';
 // Max line length of encoded string
 static const int max_line_length = 76;
 
+// Characters for new line
+#define CHAR_CR '\x0d'
+#define CHAR_LF '\x0a'
+
+// Null character
+#define CHAR_NULL '\0'
+
 static char encode_to_1st_char(const uint8_t byte) {
     return encoding_table[(byte & 0xfc) >> 2];
 }
@@ -88,15 +95,15 @@ static int encode(char* encoded_str, const uint8_t* input_bytes, const size_t in
 
         if (num_remaining_inputs > 0) {
             if ((num_encoded_chars % max_line_length) == 0) {
-                encoded_str[encoded_index] = '\x0d';
-                encoded_str[encoded_index + 1] = '\x0a';
+                encoded_str[encoded_index] = CHAR_CR;
+                encoded_str[encoded_index + 1] = CHAR_LF;
                 encoded_index += 2;
             }
         }
     }
 
     // Terminate encoded string
-    encoded_str[encoded_index] = '\0';
+    encoded_str[encoded_index] = CHAR_NULL;
 
     return encoded_index;
 }
@@ -169,31 +176,42 @@ static uint8_t decode_to_3rd_byte(const char char1, const char char2) {
     return ((decode_b64_char(char1) & 0x03) << 6) | (decode_b64_char(char2) & 0x3f);
 }
 
-static int decode(uint8_t* decoded_bytes, const char* input_string) {
+static int decode(uint8_t* decoded_bytes, const char* input_string, const bool skip_non_encoding_character) {
     int input_index = 0;
     int output_index = 0;
 
     int num_remaining_inputs = (int)strlen(input_string);
 
+    char current_input[4];
     while (num_remaining_inputs > 0) {
-        const char* current_input = &input_string[input_index];
-
         const int max_num_to_decode = (num_remaining_inputs >= 4) ? 4 : num_remaining_inputs;
         int num_to_decode = 0;
         while (num_to_decode < max_num_to_decode) {
-            // Finish decoding when reached to NUL ('\0')
-            if (current_input[num_to_decode] == '\0') {
+            // Finish decoding when reached to NULL character
+            if (input_string[input_index] == CHAR_NULL) {
+                break;
+            }
+            if ((input_string[input_index] == CHAR_CR) ||
+                (input_string[input_index] == CHAR_LF)) {
+                ++input_index;
+                continue;
+            }
+            // Finish decoding when reached to the padding character ('=')
+            if (input_string[input_index] == padding) {
                 break;
             }
             // Decoding fails when an input string contains invalid character
-            if (!is_valid_b64_char(current_input[num_to_decode])) {
+            if (is_valid_b64_char(input_string[input_index])) {
+                current_input[num_to_decode] = input_string[input_index];
+                ++input_index;
+                ++num_to_decode;
+            } else {
+                if (skip_non_encoding_character) {
+                    ++input_index;
+                    continue;
+                }
                 return B64_ERROR_INVALID_CHAR;
             }
-            // Finish decoding when reached to the padding character ('=')
-            if (current_input[num_to_decode] == padding) {
-                break;
-            }
-            ++num_to_decode;
         }
 
         if (num_to_decode > 0) {
@@ -226,8 +244,6 @@ static int decode(uint8_t* decoded_bytes, const char* input_string) {
             }
         }
 
-        input_index += 4;
-
         num_remaining_inputs -= 4;
     }
 
@@ -236,10 +252,15 @@ static int decode(uint8_t* decoded_bytes, const char* input_string) {
 
 int b64_decode(uint8_t* decoded_bytes, const char* input_string) {
     set_standard_encoding_chars();
-    return decode(decoded_bytes, input_string);
+    return decode(decoded_bytes, input_string, false);
 }
 
 int b64_url_decode(uint8_t* decoded_bytes, const char* input_string) {
     set_url_encoding_chars();
-    return decode(decoded_bytes, input_string);
+    return decode(decoded_bytes, input_string, false);
+}
+
+int b64_mime_decode(uint8_t* decoded_bytes, const char* input_string) {
+    set_standard_encoding_chars();
+    return decode(decoded_bytes, input_string, true);
 }

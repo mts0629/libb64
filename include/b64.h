@@ -66,4 +66,15 @@ int b64_decode(uint8_t* decoded_bytes, const char* input_string);
  */
 int b64_url_decode(uint8_t* decoded_bytes, const char* input_string);
 
+/**
+ * @brief Decode Base64 string for MIME
+ * 
+ * @param[out] decoded_bytes Decoded byte array
+ * @param[in] input_string Base64-MIME-encoded input string, NULL-terminated
+ * @return Byte size of the decoded byte array
+ * @retval B64_ERROR_INVALID_CHAR Input string contains invalid character
+ * @retval B64_ERROR_REMAINING_BITS The last bits are not enough to 1 byte
+ */
+int b64_mime_decode(uint8_t* decoded_bytes, const char* input_string);
+
 #endif // B64_H

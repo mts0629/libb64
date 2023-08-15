@@ -183,7 +183,7 @@ void test_mime_encoding_with_just_2lines(void) {
 void test_decoding_all_b64_chars(void) {
     uint8_t decoded_bytes[48] = { 0 };
 
-    size_t size = b64_decode(decoded_bytes, STR_OF_ALL_B64_CHARS);
+    int size = b64_decode(decoded_bytes, STR_OF_ALL_B64_CHARS);
     assert(size == 48);
 
     assert(MEM_EQ(BYTES_FOR_ALL_B64_CHARS, decoded_bytes, size));
@@ -194,7 +194,7 @@ void test_decoding_remaining_2bytes(void) {
     uint8_t original_bytes[] = { 0xff, 0xff };
 
     uint8_t decoded_bytes[2];
-    size_t size = b64_decode(decoded_bytes, b64_str);
+    int size = b64_decode(decoded_bytes, b64_str);
     assert(size == 2);
 
     assert(MEM_EQ(original_bytes, decoded_bytes, size));
@@ -205,7 +205,7 @@ void test_decoding_remaining_1byte(void) {
     uint8_t original_bytes[] = { 0xff };
 
     uint8_t decoded_bytes[1];
-    size_t size = b64_decode(decoded_bytes, b64_str);
+    int size = b64_decode(decoded_bytes, b64_str);
     assert(size == 1);
 
     assert(MEM_EQ(original_bytes, decoded_bytes, size));
@@ -214,7 +214,7 @@ void test_decoding_remaining_1byte(void) {
 void test_url_decoding_all_b64_chars(void) {
     uint8_t decoded_bytes[48] = { 0 };
 
-    size_t size = b64_url_decode(decoded_bytes, STR_OF_ALL_B64_CHARS_URL_SAFE);
+    int size = b64_url_decode(decoded_bytes, STR_OF_ALL_B64_CHARS_URL_SAFE);
     assert(size == 48);
 
     assert(MEM_EQ(BYTES_FOR_ALL_B64_CHARS, decoded_bytes, size));
@@ -225,7 +225,7 @@ void test_url_decoding_remaining_2bytes(void) {
     uint8_t original_bytes[] = { 0xff, 0xff };
 
     uint8_t decoded_bytes[2];
-    size_t size = b64_url_decode(decoded_bytes, b64_str);
+    int size = b64_url_decode(decoded_bytes, b64_str);
     assert(size == 2);
 
     assert(MEM_EQ(original_bytes, decoded_bytes, size));
@@ -236,7 +236,37 @@ void test_url_decoding_remaining_1byte(void) {
     uint8_t original_bytes[] = { 0xff };
 
     uint8_t decoded_bytes[1];
-    size_t size = b64_url_decode(decoded_bytes, b64_str);
+    int size = b64_url_decode(decoded_bytes, b64_str);
+    assert(size == 1);
+
+    assert(MEM_EQ(original_bytes, decoded_bytes, size));
+}
+
+void test_mime_decoding_with_multi_lines(void) {
+    uint8_t decoded_bytes[60] = { 0 };
+
+    int size = b64_mime_decode(decoded_bytes, STR_OF_MULTI_LINE_B64_CHARS);
+    assert(size == 60);
+
+    assert(MEM_EQ(BYTES_FOR_MULTI_LINE_B64_CHARS, decoded_bytes, size));
+}
+
+void test_mime_decoding_with_just_2lines(void) {
+    uint8_t decoded_bytes[114] = { 0 };
+
+    int size = b64_mime_decode(decoded_bytes, STR_OF_JUST_2LINES_B64_CHARS);
+    assert(size == 114);
+
+    assert(MEM_EQ(BYTES_FOR_JUST_2LINES_B64_CHARS, decoded_bytes, size));
+}
+
+void test_mime_decoding_with_non_encoding_character(void) {
+    char b64_str[] = "/?w==";
+    uint8_t original_bytes[] = { 0xff };
+
+    uint8_t decoded_bytes[] = { 0 };
+
+    int size = b64_mime_decode(decoded_bytes, b64_str);
     assert(size == 1);
 
     assert(MEM_EQ(original_bytes, decoded_bytes, size));
@@ -274,6 +304,10 @@ int main(void) {
     RUN_TEST(test_url_decoding_all_b64_chars);
     RUN_TEST(test_url_decoding_remaining_2bytes);
     RUN_TEST(test_url_decoding_remaining_1byte);
+
+    RUN_TEST(test_mime_decoding_with_multi_lines);
+    RUN_TEST(test_mime_decoding_with_just_2lines);
+    RUN_TEST(test_mime_decoding_with_non_encoding_character);
 
     RUN_TEST(test_decoding_fails_less_than_1byte);
     RUN_TEST(test_decoding_fails_by_invalid_string);
