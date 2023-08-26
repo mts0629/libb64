@@ -11,12 +11,12 @@ ifeq ($(DEBUG), yes)
 	CFLAGS += -O0 -g
 	CONFIG := debug
 	LIB_NAME = libb64d
-	LDFLAGS = -lb64d
+	LDFLAGS = -l:libb64d.a
 else
 	CFLAGS += -O2
 	CONFIG := release
 	LIB_NAME = libb64
-	LDFLAGS = -lb64
+	LDFLAGS = -l:libb64.a
 endif
 
 BUILD_DIR := build/$(CONFIG)
@@ -33,21 +33,25 @@ SAMPLES := $(addprefix $(BUILD_DIR)/, $(SAMPLE_SRCS:.c=))
 
 RM := rm -rf
 
-.PHONY: $(LIB_NAME) test sample clean
+.PHONY: staic shared test sample clean
 
-$(LIB_NAME): $(OBJS)
+all: static
+
+static: $(OBJS)
 	$(AR) rc $(BUILD_DIR)/$(LIB_NAME).a $^
+
+shared: $(OBJS)
 	$(CC) $(CFLAGS) $^ -shared -fPIC -o $(BUILD_DIR)/$(LIB_NAME).so
 
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-test: $(TEST_OBJS) $(LIB_NAME)
+test: $(TEST_OBJS) static
 	$(CC) $(CFLAGS) $< -L./$(BUILD_DIR) $(LDFLAGS) -o $(TARGET_TEST)
 	./$(TARGET_TEST)
 
-$(BUILD_DIR)/%: %.c $(LIB_NAME)
+$(BUILD_DIR)/%: %.c static
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< -L./$(BUILD_DIR) $(LDFLAGS) -o $@
 
