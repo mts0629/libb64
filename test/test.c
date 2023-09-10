@@ -276,33 +276,33 @@ void test_decoding_fails_by_invalid_string(void) {
 }
 
 int main(void) {
-    RUN_TEST(test_encoding_all_b64_chars);
-    RUN_TEST(test_encoding_2bytes_input);
-    RUN_TEST(test_encoding_1byte_input);
+    ADD_TEST_CASE(test_encoding_all_b64_chars);
+    ADD_TEST_CASE(test_encoding_2bytes_input);
+    ADD_TEST_CASE(test_encoding_1byte_input);
 
-    RUN_TEST(test_url_encoding_all_b64_chars);
-    RUN_TEST(test_url_encoding_2bytes_input);
-    RUN_TEST(test_url_encoding_1byte_input);
+    ADD_TEST_CASE(test_url_encoding_all_b64_chars);
+    ADD_TEST_CASE(test_url_encoding_2bytes_input);
+    ADD_TEST_CASE(test_url_encoding_1byte_input);
 
-    RUN_TEST(test_mime_encoding_with_multi_lines);
-    RUN_TEST(test_mime_encoding_with_just_2lines);
+    ADD_TEST_CASE(test_mime_encoding_with_multi_lines);
+    ADD_TEST_CASE(test_mime_encoding_with_just_2lines);
 
-    RUN_TEST(test_decoding_all_b64_chars);
-    RUN_TEST(test_decoding_remaining_2bytes);
-    RUN_TEST(test_decoding_remaining_1byte);
+    ADD_TEST_CASE(test_decoding_all_b64_chars);
+    ADD_TEST_CASE(test_decoding_remaining_2bytes);
+    ADD_TEST_CASE(test_decoding_remaining_1byte);
 
-    RUN_TEST(test_url_decoding_all_b64_chars);
-    RUN_TEST(test_url_decoding_remaining_2bytes);
-    RUN_TEST(test_url_decoding_remaining_1byte);
+    ADD_TEST_CASE(test_url_decoding_all_b64_chars);
+    ADD_TEST_CASE(test_url_decoding_remaining_2bytes);
+    ADD_TEST_CASE(test_url_decoding_remaining_1byte);
 
-    RUN_TEST(test_mime_decoding_with_multi_lines);
-    RUN_TEST(test_mime_decoding_with_just_2lines);
-    RUN_TEST(test_mime_decoding_with_non_encoding_character);
+    ADD_TEST_CASE(test_mime_decoding_with_multi_lines);
+    ADD_TEST_CASE(test_mime_decoding_with_just_2lines);
+    ADD_TEST_CASE(test_mime_decoding_with_non_encoding_character);
 
-    RUN_TEST(test_decoding_fails_less_than_1byte);
-    RUN_TEST(test_decoding_fails_by_invalid_string);
+    ADD_TEST_CASE(test_decoding_fails_less_than_1byte);
+    ADD_TEST_CASE(test_decoding_fails_by_invalid_string);
 
-    show_test_status();
+    run_all_tests();
 
     return 0;
 }

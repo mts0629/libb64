@@ -6,8 +6,7 @@ Base64 encoding/decoding static library with C
 
 ## Requirements
 
-- GCC
-    - C99 (`-std=C99`)
+- GCC (C99)
 - GNU ar
 - GNU Make
 
@@ -15,18 +14,18 @@ Base64 encoding/decoding static library with C
 
 Build static library `libb64.a` at `build/release` by `make` or `make static`.
 
-```c
+```sh
 $ make # or `make static`
-gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 -c src/b64.c -o build/release/src/b64.o
+gcc -Wall -Wextra -Wpedantic -std=c99 -Iinclude -O2 -c src/b64.c -o build/release/src/b64.o
 ar rc build/release/libb64.a build/release/src/b64.o
 ```
 
 Build shared library `libb64.so` at `build/release` by `make shared`.
 
-```
+```sh
 $ make shared
-gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 -c src/b64.c -o build/release/src/b64.o
-gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 build/release/src/b64.o -shared -fPIC -o build/release/libb64.so
+gcc -Wall -Wextra -Wpedantic -std=c99 -Iinclude -O2 -c src/b64.c -o build/release/src/b64.o
+gcc -Wall -Wextra -Wpedantic -std=c99 -Iinclude -O2 -shared -fPIC build/release/src/b64.o -o build/release/libb64.so
 ```
 
 A library with debug information (`libb64d.***`) can be built with option: `DEBUG=yes` (e.g. `make DEBUG=yes`) at `build/debug`.
@@ -35,15 +34,14 @@ A library with debug information (`libb64d.***`) can be built with option: `DEBU
 
 Run test cases in `test/test.c` by `make test` (`build/***/test_runner` is executed).
 
-```c
+```sh
 $ make test
-gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 -c test/test.c -o build/release/test/test.o
-ar rc build/release/libb64.a build/release/src/b64.o
-gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 build/release/test/test.o -L./build/release -lb64 -o build/release/test_runner
+# Build and run test cases
+# ...
 ./build/release/test_runner
-test_encoding_all_b64_chars ... finished
-test_encoding_2bytes_input ... finished
-test_encoding_1byte_input ... finished
+test_encoding_all_b64_chars ... PASSED
+test_encoding_2bytes_input ... PASSED
+test_encoding_1byte_input ... PASSED
 ...
 ```
 
@@ -109,30 +107,34 @@ Build sample encoder/decoder programs in `sample` by `make sample`.
 
 ```sh
 $ make sample
-gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 -c src/b64.c -o build/release/src/b64.o
-ar rc build/release/libb64.a build/release/src/b64.o
-gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 sample/b64_decoder.c -L./build/release -lb64 -o build/release/sample/b64_decoder
-gcc -Wall -Wextra -Wpedantic -std=c99 -I./include -O2 sample/b64_encoder.c -L./build/release -lb64 -o build/release/sample/b64_encoder
+# ...
+
+$ ls build/release/sample/
+b64_decoder  b64_encoder
 ```
 
-Encode an attached BMP image `sample/Pepper.bmp` to `sample/encoded.txt`:
+- b64_encoder
 
-```sh
-$ ./build/release/sample/b64_encoder ./sample/Pepper.bmp ./sample/encoded.txt
-Base64 encoding of ./sample/Pepper.bmp is finished (196662 to 262216 bytes).
-The string is written to './sample/encoded.txt'.
-$ cat output.txt
-k02AAMAAAAAADYAAAAoAAAAAAEAAAABAAABABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABcMHN+L3KAImd4KpKUWL26VbG3NbW5P8DGWMjEXs3HUsrDIU8rJUdHGWdDMU9LK
-...
-```
+    Encode an attached BMP image `sample/Pepper.bmp` to `sample/encoded.txt`:
 
-Decode `sample/encoded.txt` to `sample/decoded.bin`:
+    ```sh
+    $ ./build/release/sample/b64_encoder ./sample/Pepper.bmp ./sample/encoded.txt
+    Base64 encoding of ./sample/Pepper.bmp is finished (196662 to 262216 bytes).
+    The string is written to './sample/encoded.txt'.
+    $ cat output.txt
+    k02AAMAAAAAADYAAAAoAAAAAAEAAAABAAABABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABcMHN+L3KAImd4KpKUWL26VbG3NbW5P8DGWMjEXs3HUsrDIU8rJUdHGWdDMU9LK
+    ...
+    ```
 
-```sh
-$ ./build/release/sample/b64_decoder ./sample/encoded.txt ./sample/decoded.bin
-Base64 decoding of ./sample/encoded.txt is finished (262216 to 196662 bytes).
-The byte expression is written to './sample/decoded.bin'.
+- b64_decoder
 
-$ diff ./sample/Pepper.bmp ./sample/decoded.bin
-# No differences
-```
+    Decode `sample/encoded.txt` to `sample/decoded.bin`:
+
+    ```sh
+    $ ./build/release/sample/b64_decoder ./sample/encoded.txt ./sample/decoded.bin
+    Base64 decoding of ./sample/encoded.txt is finished (262216 to 196662 bytes).
+    The byte expression is written to './sample/decoded.bin'.
+
+    $ diff ./sample/Pepper.bmp ./sample/decoded.bin
+    # No differences
+    ```
