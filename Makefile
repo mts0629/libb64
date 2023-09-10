@@ -1,23 +1,21 @@
-INC_DIR  := include
-SRC_DIR  := src
-TEST_DIR := test
-SAMPLE_DIR := sample
-
 CC     := gcc
-CFLAGS  = -Wall -Wextra -Wpedantic -std=c99 -I./$(INC_DIR)
+CFLAGS  = -Wall -Wextra -Wpedantic -std=c99 -I$(INC_DIR)
 
 DEBUG ?= no
 ifeq ($(DEBUG), yes)
 	CFLAGS += -O0 -g
 	CONFIG := debug
-	LIB_NAME = libb64d
-	LDFLAGS = -l:libb64d.a
+	LIB_NAME := libb64d
 else
 	CFLAGS += -O2
 	CONFIG := release
-	LIB_NAME = libb64
-	LDFLAGS = -l:libb64.a
+	LIB_NAME := libb64
 endif
+
+INC_DIR  := include
+SRC_DIR  := src
+TEST_DIR := test
+SAMPLE_DIR := sample
 
 BUILD_DIR := build/$(CONFIG)
 
@@ -31,29 +29,40 @@ TARGET_TEST := $(BUILD_DIR)/test_runner
 SAMPLE_SRCS := $(wildcard $(SAMPLE_DIR)/*.c)
 SAMPLES := $(addprefix $(BUILD_DIR)/, $(SAMPLE_SRCS:.c=))
 
+STATIC_LIB = $(BUILD_DIR)/$(LIB_NAME).a
+SHARED_LIB = $(BUILD_DIR)/$(LIB_NAME).so
+
+LDFLAGS = -l:$(STATIC_LIB)
+
 RM := rm -rf
 
-.PHONY: staic shared test sample clean
+.PHONY: static shared test sample clean
 
 all: static
 
-static: $(OBJS)
-	$(AR) rc $(BUILD_DIR)/$(LIB_NAME).a $^
+$(STATIC_LIB): $(OBJS)
+	$(AR) rc $@ $^
 
-shared: $(OBJS)
-	$(CC) $(CFLAGS) $^ -shared -fPIC -o $(BUILD_DIR)/$(LIB_NAME).so
+static: $(STATIC_LIB)
+
+$(SHARED_LIB): $(OBJS)
+	$(CC) $(CFLAGS) -shared -fPIC $^ -o $@
+
+shared: $(SHARED_LIB)
 
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-test: $(TEST_OBJS) static
-	$(CC) $(CFLAGS) $< -L./$(BUILD_DIR) $(LDFLAGS) -o $(TARGET_TEST)
+$(TARGET_TEST): $(TEST_OBJS) $(STATIC_LIB)
+	$(CC) $(CFLAGS) $^ -I$(TEST_DIR) -L$(BUILD_DIR) -o $(TARGET_TEST)
+
+test: $(STATIC_LIB) $(TARGET_TEST)
 	./$(TARGET_TEST)
 
-$(BUILD_DIR)/%: %.c static
+$(BUILD_DIR)/%: %.c $(STATIC_LIB)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $< -L./$(BUILD_DIR) $(LDFLAGS) -o $@
+	$(CC) $(CFLAGS) $^ -L$(BUILD_DIR) -o $@
 
 sample: $(SAMPLES)
 
