@@ -37,7 +37,7 @@ void free_memories(void) {
 
 // Write base64 encoded string to a file
 bool write_b64_str_to_file(const char* encoded_str, const char* fname) {
-    FILE* fp = fopen(fname,"w");
+    FILE* fp = fopen(fname,"wb");
     if (fp == NULL) {
         fprintf(stderr, "Error: failed to open %s\n", fname);
         return false;

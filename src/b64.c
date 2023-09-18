@@ -45,7 +45,7 @@ static char encode_to_4th_char(const uint8_t byte) {
     return encoding_table[byte & 0x3f];
 }
 
-static int encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes, const bool use_padding) {
+static int encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes, const bool use_padding, const bool insert_crlf) {
     int input_index = 0;
     int encoded_index = 0;
 
@@ -93,11 +93,14 @@ static int encode(char* encoded_str, const uint8_t* input_bytes, const size_t in
 
         num_remaining_inputs -= 3;
 
-        if (num_remaining_inputs > 0) {
-            if ((num_encoded_chars % max_line_length) == 0) {
-                encoded_str[encoded_index] = CHAR_CR;
-                encoded_str[encoded_index + 1] = CHAR_LF;
-                encoded_index += 2;
+        // Insert CR+LF
+        if (insert_crlf) {
+            if (num_remaining_inputs > 0) {
+                if ((num_encoded_chars % max_line_length) == 0) {
+                    encoded_str[encoded_index] = CHAR_CR;
+                    encoded_str[encoded_index + 1] = CHAR_LF;
+                    encoded_index += 2;
+                }
             }
         }
     }
@@ -126,17 +129,17 @@ static inline void set_url_encoding_chars(void) {
 
 int b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
     set_standard_encoding_chars();
-    return encode(encoded_str, input_bytes, input_size_in_bytes, true);
+    return encode(encoded_str, input_bytes, input_size_in_bytes, true, false);
 }
 
 int b64_url_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
     set_url_encoding_chars();
-    return encode(encoded_str, input_bytes, input_size_in_bytes, false);
+    return encode(encoded_str, input_bytes, input_size_in_bytes, false, false);
 }
 
 int b64_mime_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
     set_standard_encoding_chars();
-    return encode(encoded_str, input_bytes, input_size_in_bytes, true);
+    return encode(encoded_str, input_bytes, input_size_in_bytes, true, true);
 }
 
 // Convert a input character to an index of the base64 encoding table

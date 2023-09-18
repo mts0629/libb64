@@ -153,6 +153,22 @@ void test_url_encoding_1byte_input(void) {
     ASSERT_STR_EQ("_w", b64_str);
 }
 
+void test_encoding_without_crlf(void) {
+    static char STR_OVER_76_CHARS[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/ABCDEFGHIJKLMNOP";
+
+    char encoded_str[80 + 1] = { '\0' };
+
+    ASSERT_INT_EQ(b64_encode(encoded_str, BYTES_FOR_MULTI_LINE_B64_CHARS, sizeof(BYTES_FOR_MULTI_LINE_B64_CHARS)), 80);
+    ASSERT_STR_EQ(STR_OVER_76_CHARS, encoded_str);
+
+    static char STR_OVER_76_CHARS_URL_SAFE[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_ABCDEFGHIJKLMNOP";
+
+    ASSERT_INT_EQ(b64_url_encode(encoded_str, BYTES_FOR_MULTI_LINE_B64_CHARS, sizeof(BYTES_FOR_MULTI_LINE_B64_CHARS)), 80);
+    ASSERT_STR_EQ(STR_OVER_76_CHARS_URL_SAFE, encoded_str);
+}
+
 void test_mime_encoding_with_multi_lines(void) {
     char encoded_str[82 + 1] = { '\0' };
 
@@ -284,6 +300,7 @@ int main(void) {
     ADD_TEST_CASE(test_url_encoding_2bytes_input);
     ADD_TEST_CASE(test_url_encoding_1byte_input);
 
+    ADD_TEST_CASE(test_encoding_without_crlf);
     ADD_TEST_CASE(test_mime_encoding_with_multi_lines);
     ADD_TEST_CASE(test_mime_encoding_with_just_2lines);
 
