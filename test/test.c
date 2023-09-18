@@ -104,7 +104,7 @@ static char STR_OF_JUST_2LINES_B64_CHARS[] =
 void test_encoding_all_b64_chars(void) {
     char encoded_str[64 + 1] = { '\0' };
 
-    ASSERT_INT_EQ(b64_encode(encoded_str, BYTES_FOR_ALL_B64_CHARS, sizeof(BYTES_FOR_ALL_B64_CHARS)), 64);
+    ASSERT_INT_EQ(64, b64_encode(encoded_str, BYTES_FOR_ALL_B64_CHARS, sizeof(BYTES_FOR_ALL_B64_CHARS)));
 
     ASSERT_STR_EQ(STR_OF_ALL_B64_CHARS, encoded_str);
 }
@@ -113,7 +113,7 @@ void test_encoding_2bytes_input(void) {
     uint8_t input_bytes[] = { 0xff, 0xff };
     char b64_str[4 + 1];
 
-    ASSERT_INT_EQ(b64_encode(b64_str, input_bytes, sizeof(input_bytes)), 4);
+    ASSERT_INT_EQ(4, b64_encode(b64_str, input_bytes, sizeof(input_bytes)));
 
     ASSERT_STR_EQ("//8=", b64_str);
 }
@@ -122,7 +122,7 @@ void test_encoding_1byte_input(void) {
     uint8_t input_bytes[] = { 0xff };
     char b64_str[4 + 1];
 
-    ASSERT_INT_EQ(b64_encode(b64_str, input_bytes, sizeof(input_bytes)), 4);
+    ASSERT_INT_EQ(4, b64_encode(b64_str, input_bytes, sizeof(input_bytes)));
 
     ASSERT_STR_EQ("/w==", b64_str);
 }
@@ -130,7 +130,7 @@ void test_encoding_1byte_input(void) {
 void test_url_encoding_all_b64_chars(void) {
     char encoded_str[64 + 1] = { '\0' };
 
-    ASSERT_INT_EQ(b64_url_encode(encoded_str, BYTES_FOR_ALL_B64_CHARS, sizeof(BYTES_FOR_ALL_B64_CHARS)), 64);
+    ASSERT_INT_EQ(64, b64_url_encode(encoded_str, BYTES_FOR_ALL_B64_CHARS, sizeof(BYTES_FOR_ALL_B64_CHARS)));
 
     ASSERT_STR_EQ(STR_OF_ALL_B64_CHARS_URL_SAFE, encoded_str);
 }
@@ -139,7 +139,7 @@ void test_url_encoding_2bytes_input(void) {
     uint8_t input_bytes[] = { 0xff, 0xff };
     char b64_str[3 + 1];
 
-    ASSERT_INT_EQ(b64_url_encode(b64_str, input_bytes, sizeof(input_bytes)), 3);
+    ASSERT_INT_EQ(3, b64_url_encode(b64_str, input_bytes, sizeof(input_bytes)));
 
     ASSERT_STR_EQ("__8", b64_str);
 }
@@ -148,7 +148,7 @@ void test_url_encoding_1byte_input(void) {
     uint8_t input_bytes[] = { 0xff };
     char b64_str[2 + 1];
 
-    ASSERT_INT_EQ(b64_url_encode(b64_str, input_bytes, sizeof(input_bytes)), 2);
+    ASSERT_INT_EQ(2, b64_url_encode(b64_str, input_bytes, sizeof(input_bytes)));
 
     ASSERT_STR_EQ("_w", b64_str);
 }
@@ -159,20 +159,20 @@ void test_encoding_without_crlf(void) {
 
     char encoded_str[80 + 1] = { '\0' };
 
-    ASSERT_INT_EQ(b64_encode(encoded_str, BYTES_FOR_MULTI_LINE_B64_CHARS, sizeof(BYTES_FOR_MULTI_LINE_B64_CHARS)), 80);
+    ASSERT_INT_EQ(80, b64_encode(encoded_str, BYTES_FOR_MULTI_LINE_B64_CHARS, sizeof(BYTES_FOR_MULTI_LINE_B64_CHARS)));
     ASSERT_STR_EQ(STR_OVER_76_CHARS, encoded_str);
 
     static char STR_OVER_76_CHARS_URL_SAFE[] =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_ABCDEFGHIJKLMNOP";
 
-    ASSERT_INT_EQ(b64_url_encode(encoded_str, BYTES_FOR_MULTI_LINE_B64_CHARS, sizeof(BYTES_FOR_MULTI_LINE_B64_CHARS)), 80);
+    ASSERT_INT_EQ(80, b64_url_encode(encoded_str, BYTES_FOR_MULTI_LINE_B64_CHARS, sizeof(BYTES_FOR_MULTI_LINE_B64_CHARS)));
     ASSERT_STR_EQ(STR_OVER_76_CHARS_URL_SAFE, encoded_str);
 }
 
 void test_mime_encoding_with_multi_lines(void) {
     char encoded_str[82 + 1] = { '\0' };
 
-    ASSERT_INT_EQ(b64_mime_encode(encoded_str, BYTES_FOR_MULTI_LINE_B64_CHARS, sizeof(BYTES_FOR_MULTI_LINE_B64_CHARS)), 82);
+    ASSERT_INT_EQ(82, b64_mime_encode(encoded_str, BYTES_FOR_MULTI_LINE_B64_CHARS, sizeof(BYTES_FOR_MULTI_LINE_B64_CHARS)));
 
     ASSERT_STR_EQ(STR_OF_MULTI_LINE_B64_CHARS, encoded_str);
 }
@@ -180,7 +180,7 @@ void test_mime_encoding_with_multi_lines(void) {
 void test_mime_encoding_with_just_2lines(void) {
     char encoded_str[154 + 1] = { '\0' };
 
-    ASSERT_INT_EQ(b64_mime_encode(encoded_str, BYTES_FOR_JUST_2LINES_B64_CHARS, sizeof(BYTES_FOR_JUST_2LINES_B64_CHARS)), 154);
+    ASSERT_INT_EQ(154, b64_mime_encode(encoded_str, BYTES_FOR_JUST_2LINES_B64_CHARS, sizeof(BYTES_FOR_JUST_2LINES_B64_CHARS)));
 
     ASSERT_STR_EQ(STR_OF_JUST_2LINES_B64_CHARS, encoded_str);
 }
@@ -190,7 +190,7 @@ void test_decoding_all_b64_chars(void) {
     uint8_t decoded_bytes[48] = { 0 };
 
     int size = b64_decode(decoded_bytes, STR_OF_ALL_B64_CHARS);
-    ASSERT_INT_EQ(size, 48);
+    ASSERT_INT_EQ(48, size);
 
     ASSERT_MEM_EQ(BYTES_FOR_ALL_B64_CHARS, decoded_bytes, size);
 }
@@ -201,7 +201,7 @@ void test_decoding_remaining_2bytes(void) {
 
     uint8_t decoded_bytes[2];
     int size = b64_decode(decoded_bytes, b64_str);
-    ASSERT_INT_EQ(size, 2);
+    ASSERT_INT_EQ(2, size);
 
     ASSERT_MEM_EQ(original_bytes, decoded_bytes, size);
 }
@@ -212,7 +212,7 @@ void test_decoding_remaining_1byte(void) {
 
     uint8_t decoded_bytes[1];
     int size = b64_decode(decoded_bytes, b64_str);
-    ASSERT_INT_EQ(size, 1);
+    ASSERT_INT_EQ(1, size);
 
     ASSERT_MEM_EQ(original_bytes, decoded_bytes, size);
 }
@@ -221,7 +221,7 @@ void test_url_decoding_all_b64_chars(void) {
     uint8_t decoded_bytes[48] = { 0 };
 
     int size = b64_url_decode(decoded_bytes, STR_OF_ALL_B64_CHARS_URL_SAFE);
-    ASSERT_INT_EQ(size, 48);
+    ASSERT_INT_EQ(48, size);
 
     ASSERT_MEM_EQ(BYTES_FOR_ALL_B64_CHARS, decoded_bytes, size);
 }
@@ -232,7 +232,7 @@ void test_url_decoding_remaining_2bytes(void) {
 
     uint8_t decoded_bytes[2];
     int size = b64_url_decode(decoded_bytes, b64_str);
-    ASSERT_INT_EQ(size, 2);
+    ASSERT_INT_EQ(2, size);
 
     ASSERT_MEM_EQ(original_bytes, decoded_bytes, size);
 }
@@ -243,7 +243,7 @@ void test_url_decoding_remaining_1byte(void) {
 
     uint8_t decoded_bytes[1];
     int size = b64_url_decode(decoded_bytes, b64_str);
-    ASSERT_INT_EQ(size, 1);
+    ASSERT_INT_EQ(1, size);
 
     ASSERT_MEM_EQ(original_bytes, decoded_bytes, size);
 }
@@ -252,7 +252,7 @@ void test_mime_decoding_with_multi_lines(void) {
     uint8_t decoded_bytes[60] = { 0 };
 
     int size = b64_mime_decode(decoded_bytes, STR_OF_MULTI_LINE_B64_CHARS);
-    ASSERT_INT_EQ(size, 60);
+    ASSERT_INT_EQ(60, size);
 
     ASSERT_MEM_EQ(BYTES_FOR_MULTI_LINE_B64_CHARS, decoded_bytes, size);
 }
@@ -261,7 +261,7 @@ void test_mime_decoding_with_just_2lines(void) {
     uint8_t decoded_bytes[114] = { 0 };
 
     int size = b64_mime_decode(decoded_bytes, STR_OF_JUST_2LINES_B64_CHARS);
-    ASSERT_INT_EQ(size, 114);
+    ASSERT_INT_EQ(114, size);
 
     ASSERT_MEM_EQ(BYTES_FOR_JUST_2LINES_B64_CHARS, decoded_bytes, size);
 }
@@ -273,7 +273,7 @@ void test_mime_decoding_with_non_encoding_character(void) {
     uint8_t decoded_bytes[] = { 0 };
 
     int size = b64_mime_decode(decoded_bytes, b64_str);
-    ASSERT_INT_EQ(size, 1);
+    ASSERT_INT_EQ(1, size);
 
     ASSERT_MEM_EQ(original_bytes, decoded_bytes, size);
 }
@@ -282,13 +282,13 @@ void test_decoding_fails_less_than_1byte(void) {
     char b64_str[] = "/===";
 
     uint8_t decoded_bytes;
-    ASSERT_INT_EQ(b64_decode(&decoded_bytes, b64_str), B64_ERROR_REMAINING_BITS);
+    ASSERT_INT_EQ(B64_ERROR_REMAINING_BITS, b64_decode(&decoded_bytes, b64_str));
 }
 
 void test_decoding_fails_by_invalid_string(void) {
     uint8_t decoded_bytes[32] = { 0 };
 
-    ASSERT_INT_EQ(b64_decode(decoded_bytes, "????"), B64_ERROR_INVALID_CHAR);
+    ASSERT_INT_EQ(B64_ERROR_INVALID_CHAR, b64_decode(decoded_bytes, "????"));
 }
 
 int main(void) {
