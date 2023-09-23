@@ -118,11 +118,11 @@ b64_decoder  b64_encoder
     Encode an attached BMP image `sample/Pepper.bmp` to `sample/encoded.txt`:
 
     ```sh
-    $ ./build/release/sample/b64_encoder ./sample/Pepper.bmp ./sample/encoded.txt
-    Base64 encoding of ./sample/Pepper.bmp is finished (196662 to 262216 bytes).
+    $ ./build/release/sample/b64_encoder ./sample/sakura.jpg ./sample/encoded.txt 
+    Base64 encoding of ./sample/sakura.jpg is finished (87269 to 116360 bytes).
     The string is written to './sample/encoded.txt'.
     $ cat output.txt
-    k02AAMAAAAAADYAAAAoAAAAAAEAAAABAAABABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABcMHN+L3KAImd4KpKUWL26VbG3NbW5P8DGWMjEXs3HUsrDIU8rJUdHGWdDMU9LK
+    /9j/4AAQSkZJRgABAQEASABIAAD/4T9eRXhpZgAATU0AKgAAAAgADAEPAAIAAAAGAAAAngEQAAIA
     ...
     ```
 
@@ -131,10 +131,10 @@ b64_decoder  b64_encoder
     Decode `sample/encoded.txt` to `sample/decoded.bin`:
 
     ```sh
-    $ ./build/release/sample/b64_decoder ./sample/encoded.txt ./sample/decoded.bin
-    Base64 decoding of ./sample/encoded.txt is finished (262216 to 196662 bytes).
+    $ ./build/release/sample/b64_decoder ./sample/encoded.txt ./sample/decoded.bin 
+    Base64 decoding of ./sample/encoded.txt is finished (116360 to 87269 bytes).
     The byte expression is written to './sample/decoded.bin'.
 
-    $ diff ./sample/Pepper.bmp ./sample/decoded.bin
+    $ diff ./sample/sakura.jpg ./sample/decoded.bin
     # No differences
     ```
