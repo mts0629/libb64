@@ -104,24 +104,24 @@ void test_encoding_to_over_76_chars(void) {
     ASSERT_STR_EQ(B64_CHARS_OVER_76_CHARS_WITH_CRLF, encoded_str);
 }
 
-static uint8_t BYTES_OF_B64_CHARS_JUST_2LINES[] = {
-    0x00, 0x10, 0x83, 0x10, 0x51, 0x87, 0x20, 0x92, 0x8b, 0x30, 0xd3, 0x8f,
-    0x41, 0x14, 0x93, 0x51, 0x55, 0x97, 0x61, 0x96, 0x9b, 0x71, 0xd7, 0x9f,
-    0x82, 0x18, 0xa3, 0x92, 0x59, 0xa7, 0xa2, 0x9a, 0xab, 0xb2, 0xdb, 0xaf,
-    0xc3, 0x1c, 0xb3, 0xd3, 0x5d, 0xb7, 0xe3, 0x9e, 0xbb, 0xf3, 0xdf, 0xbf,
-    0x00, 0x10, 0x83, 0x10, 0x51, 0x87, 0x20, 0x92, 0x8b, 0x30, 0xd3, 0x8f,
-    0x41, 0x14, 0x93, 0x51, 0x55, 0x97, 0x61, 0x96, 0x9b, 0x71, 0xd7, 0x9f,
-    0x82, 0x18, 0xa3, 0x92, 0x59, 0xa7, 0xa2, 0x9a, 0xab, 0xb2, 0xdb, 0xaf,
-    0xc3, 0x1c, 0xb3, 0xd3, 0x5d, 0xb7, 0xe3, 0x9e, 0xbb, 0xf3, 0xdf, 0xbf,
-    0x00, 0x10, 0x83, 0x10, 0x51, 0x87, 0x20, 0x92, 0x8b, 0x30, 0xd3, 0x8f,
-    0x41, 0x14, 0x93, 0x51, 0x55, 0x97
-};
+void test_mime_encoding_outputs_no_trailing_CRLF(void) {
+    static uint8_t BYTES_OF_B64_CHARS_JUST_2LINES[] = {
+        0x00, 0x10, 0x83, 0x10, 0x51, 0x87, 0x20, 0x92, 0x8b, 0x30, 0xd3, 0x8f,
+        0x41, 0x14, 0x93, 0x51, 0x55, 0x97, 0x61, 0x96, 0x9b, 0x71, 0xd7, 0x9f,
+        0x82, 0x18, 0xa3, 0x92, 0x59, 0xa7, 0xa2, 0x9a, 0xab, 0xb2, 0xdb, 0xaf,
+        0xc3, 0x1c, 0xb3, 0xd3, 0x5d, 0xb7, 0xe3, 0x9e, 0xbb, 0xf3, 0xdf, 0xbf,
+        0x00, 0x10, 0x83, 0x10, 0x51, 0x87, 0x20, 0x92, 0x8b, 0x30, 0xd3, 0x8f,
+        0x41, 0x14, 0x93, 0x51, 0x55, 0x97, 0x61, 0x96, 0x9b, 0x71, 0xd7, 0x9f,
+        0x82, 0x18, 0xa3, 0x92, 0x59, 0xa7, 0xa2, 0x9a, 0xab, 0xb2, 0xdb, 0xaf,
+        0xc3, 0x1c, 0xb3, 0xd3, 0x5d, 0xb7, 0xe3, 0x9e, 0xbb, 0xf3, 0xdf, 0xbf,
+        0x00, 0x10, 0x83, 0x10, 0x51, 0x87, 0x20, 0x92, 0x8b, 0x30, 0xd3, 0x8f,
+        0x41, 0x14, 0x93, 0x51, 0x55, 0x97
+    };
 
-static char B64_CHARS_JUST_2LINES[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/ABCDEFGHIJKL\x0d\x0a"
-    "MNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/ABCDEFGHIJKLMNOPQRSTUVWX";
+    static char B64_CHARS_JUST_2LINES[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/ABCDEFGHIJKL\x0d\x0a"
+        "MNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/ABCDEFGHIJKLMNOPQRSTUVWX";
 
-void test_mime_encoding_with_just_2lines(void) {
     char encoded_str[sizeof(B64_CHARS_JUST_2LINES)] = { '\0' };
 
     ASSERT_INT_EQ(strlen(B64_CHARS_JUST_2LINES), b64_mime_encode(encoded_str, BYTES_OF_B64_CHARS_JUST_2LINES, sizeof(BYTES_OF_B64_CHARS_JUST_2LINES)));
@@ -196,7 +196,7 @@ void test_decoding_remaining_1byte(void) {
     ASSERT_MEM_EQ(original_bytes, output_bytes, size);
 }
 
-void test_mime_decoding_with_multi_lines(void) {
+void test_mime_decoding_with_multi_line_encoding_chars(void) {
     uint8_t output_bytes[sizeof(BYTES_OF_B64_CHARS_OVER_76_CHARS)] = { 0 };
 
     int size = b64_mime_decode(output_bytes, B64_CHARS_OVER_76_CHARS_WITH_CRLF);
@@ -205,16 +205,7 @@ void test_mime_decoding_with_multi_lines(void) {
     ASSERT_MEM_EQ(BYTES_OF_B64_CHARS_OVER_76_CHARS, output_bytes, size);
 }
 
-void test_mime_decoding_with_just_2lines(void) {
-    uint8_t output_bytes[sizeof(BYTES_OF_B64_CHARS_JUST_2LINES)] = { 0 };
-
-    int size = b64_mime_decode(output_bytes, B64_CHARS_JUST_2LINES);
-    ASSERT_INT_EQ(sizeof(BYTES_OF_B64_CHARS_JUST_2LINES), size);
-
-    ASSERT_MEM_EQ(BYTES_OF_B64_CHARS_JUST_2LINES, output_bytes, size);
-}
-
-void test_mime_decoding_with_non_encoding_character(void) {
+void test_mime_decoding_with_non_encoding_char(void) {
     char input_b64_chars[] = "/?w==";
     uint8_t original_bytes[] = { 0xff };
 
@@ -237,7 +228,7 @@ void test_decoding_fails_less_than_1byte(void) {
     ASSERT_INT_EQ(B64_ERROR_REMAINING_BITS, b64_mime_decode(&output_bytes, input_b64_chars));
 }
 
-void test_decoding_fails_by_invalid_string(void) {
+void test_decoding_fails_with_non_encoding_char(void) {
     char input_b64_chars[] = "ABC?";
     uint8_t output_bytes[3] = { 0 };
 
@@ -251,18 +242,17 @@ int main(void) {
     ADD_TEST_CASE(test_encoding_1byte_input);
     ADD_TEST_CASE(test_encoding_to_over_76_chars);
 
-    ADD_TEST_CASE(test_mime_encoding_with_just_2lines);
+    ADD_TEST_CASE(test_mime_encoding_outputs_no_trailing_CRLF);
 
     ADD_TEST_CASE(test_decoding_all_b64_chars);
     ADD_TEST_CASE(test_decoding_remaining_2bytes);
     ADD_TEST_CASE(test_decoding_remaining_1byte);
 
-    ADD_TEST_CASE(test_mime_decoding_with_multi_lines);
-    ADD_TEST_CASE(test_mime_decoding_with_just_2lines);
-    ADD_TEST_CASE(test_mime_decoding_with_non_encoding_character);
+    ADD_TEST_CASE(test_mime_decoding_with_multi_line_encoding_chars);
+    ADD_TEST_CASE(test_mime_decoding_with_non_encoding_char);
 
     ADD_TEST_CASE(test_decoding_fails_less_than_1byte);
-    ADD_TEST_CASE(test_decoding_fails_by_invalid_string);
+    ADD_TEST_CASE(test_decoding_fails_with_non_encoding_char);
 
     run_all_tests();
 
