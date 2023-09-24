@@ -160,11 +160,24 @@ static uint8_t decode_b64_char(const char c) {
 }
 
 static bool is_valid_b64_char(const char c) {
-    if (isalnum(c) || (c == encoding_table[62]) || (c == encoding_table[63]) || (c == padding)) {
+    if (isalnum(c) || (c == encoding_table[62]) || (c == encoding_table[63])) {
         return true;
     }
 
     return false;
+}
+
+bool is_valid_input(const char* input_string) {
+    size_t length = strlen(input_string);
+
+    for (size_t i = 0; i < length; ++i) {
+        const char c = input_string[i];
+        if (!is_valid_b64_char(c) && (c != CHAR_CR) && (c != CHAR_LF) && (c != padding)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 static uint8_t decode_to_1st_byte(const char char1, const char char2) {
@@ -179,7 +192,7 @@ static uint8_t decode_to_3rd_byte(const char char1, const char char2) {
     return ((decode_b64_char(char1) & 0x03) << 6) | (decode_b64_char(char2) & 0x3f);
 }
 
-static int decode(uint8_t* decoded_bytes, const char* input_string, const bool skip_non_encoding_character) {
+static int decode(uint8_t* decoded_bytes, const char* input_string) {
     int input_index = 0;
     int output_index = 0;
 
@@ -190,17 +203,9 @@ static int decode(uint8_t* decoded_bytes, const char* input_string, const bool s
         const int max_num_to_decode = (num_remaining_inputs >= 4) ? 4 : num_remaining_inputs;
         int num_to_decode = 0;
         while (num_to_decode < max_num_to_decode) {
-            // Finish decoding when reached to NULL character
-            if (input_string[input_index] == CHAR_NULL) {
-                break;
-            }
-            if ((input_string[input_index] == CHAR_CR) ||
-                (input_string[input_index] == CHAR_LF)) {
-                ++input_index;
-                continue;
-            }
-            // Finish decoding when reached to the padding character ('=')
-            if (input_string[input_index] == padding) {
+            // Finish decoding when reached to NULL or padding ('=') character
+            if ((input_string[input_index] == CHAR_NULL) || 
+                (input_string[input_index] == padding)) {
                 break;
             }
             // Decoding fails when an input string contains invalid character
@@ -209,11 +214,9 @@ static int decode(uint8_t* decoded_bytes, const char* input_string, const bool s
                 ++input_index;
                 ++num_to_decode;
             } else {
-                if (skip_non_encoding_character) {
-                    ++input_index;
-                    continue;
-                }
-                return B64_ERROR_INVALID_CHAR;
+                // Non encoding characters or CRLF
+                ++input_index;
+                continue;
             }
         }
 
@@ -255,15 +258,21 @@ static int decode(uint8_t* decoded_bytes, const char* input_string, const bool s
 
 int b64_decode(uint8_t* decoded_bytes, const char* input_string) {
     set_standard_encoding_chars();
-    return decode(decoded_bytes, input_string, false);
+    if (!is_valid_input(input_string)) {
+        return B64_ERROR_INVALID_CHAR;
+    }
+    return decode(decoded_bytes, input_string);
 }
 
 int b64_url_decode(uint8_t* decoded_bytes, const char* input_string) {
     set_url_encoding_chars();
-    return decode(decoded_bytes, input_string, false);
+    if (!is_valid_input(input_string)) {
+        return B64_ERROR_INVALID_CHAR;
+    }
+    return decode(decoded_bytes, input_string);
 }
 
 int b64_mime_decode(uint8_t* decoded_bytes, const char* input_string) {
     set_standard_encoding_chars();
-    return decode(decoded_bytes, input_string, true);
+    return decode(decoded_bytes, input_string);
 }
