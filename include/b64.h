@@ -15,34 +15,42 @@
 #define B64_ERROR_REMAINING_BITS -2
 
 /**
+ * @def Error by shortage of the output buffer
+ */
+#define B64_ERROR_BUFFER_SHORTAGE -3
+
+/**
  * @brief Encode byte array by Base64
  * 
  * @param[out] encoded_str Base64-encoded output string
+ * @param[in] output_size_in_bytes Output size in bytes
  * @param[in] input_bytes Input byte array
  * @param[in] input_size_in_bytes Input size in bytes
  * @return Byte size of the encoded string, NULL-terminated
  */
-int b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes);
+int b64_encode(char* encoded_str, const size_t output_size_in_bytes, const uint8_t* input_bytes, const size_t input_size_in_bytes);
 
 /**
  * @brief Encode byte array by URL-safe Base64
  * 
  * @param[out] encoded_str URL-safe Base64-encoded output string
+ * @param[in] output_size_in_bytes Output size in bytes
  * @param[in] input_bytes Input byte array
  * @param[in] input_size_in_bytes Input size in bytes
  * @return Byte size of the encoded string, NULL-terminated
  */
-int b64_url_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes);
+int b64_url_encode(char* encoded_str, const size_t output_size_in_bytes, const uint8_t* input_bytes, const size_t input_size_in_bytes);
 
 /**
  * @brief Encode byte array by Base64 for MIME
  * 
  * @param[out] encoded_str URL-safe Base64-encoded output string
+ * @param[in] output_size_in_bytes Output size in bytes
  * @param[in] input_bytes Input byte array
  * @param[in] input_size_in_bytes Input size in bytes
  * @return Byte size of the encoded string, NULL-terminated
  */
-int b64_mime_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes);
+int b64_mime_encode(char* encoded_str, const size_t output_size_in_bytes, const uint8_t* input_bytes, const size_t input_size_in_bytes);
 
 /**
  * @brief Decode Base64 string

@@ -64,7 +64,7 @@ void encode_sample(void) {
     // Output string of sufficient byte size, includes a NUL character ('\0')
     char base64_str[12 + 1];
 
-    assert(b64_encode(base64_str, input_bytes, sizeof(input_bytes)) == 12);
+    assert(b64_encode(base64_str, sizeof(base64_str), input_bytes, sizeof(input_bytes)) == 12);
 
     // "QUJDREVGRw=="
     printf("%s\n", base64_str);

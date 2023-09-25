@@ -46,6 +46,7 @@ static char encode_to_4th_char(const uint8_t byte) {
 }
 
 static int encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes, const bool use_padding, const bool insert_crlf) {
+
     int input_index = 0;
     int encoded_index = 0;
 
@@ -127,17 +128,64 @@ static inline void set_url_encoding_chars(void) {
     set_last2_encoding_chars('-', '_');
 }
 
-int b64_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
+static bool is_buffer_enough_size(const size_t input_size_in_bytes, const size_t output_size_in_bytes, const bool use_padding, const bool insert_crlf) {
+    if (output_size_in_bytes == 0) {
+        return false;
+    }
+
+    // Calculate expected size
+    size_t exp_output_size = (input_size_in_bytes >= 3) ? input_size_in_bytes / 3 * 4 : 4;
+    // Reduce padding size if not used
+    if (use_padding) {
+        switch (input_size_in_bytes % 3) {
+            case 1:
+                exp_output_size -= 2;
+                break;
+            case 2:
+                exp_output_size -= 1;
+                break;
+            default:
+                break;
+        }
+    }
+    // CR+LF
+    if (insert_crlf) {
+        int n_lines = (exp_output_size / max_line_length);
+        if ((exp_output_size % max_line_length) == 0) {
+            n_lines--;
+        }
+        exp_output_size += (n_lines * 2);
+    }
+    // NUL
+    exp_output_size += 1;
+
+    if (exp_output_size > output_size_in_bytes) {
+        return false;
+    }
+
+    return true;
+}
+
+int b64_encode(char* encoded_str, const size_t output_size_in_bytes, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
+    if (!is_buffer_enough_size(input_size_in_bytes, output_size_in_bytes, true, false)) {
+        return B64_ERROR_BUFFER_SHORTAGE;
+    }
     set_standard_encoding_chars();
     return encode(encoded_str, input_bytes, input_size_in_bytes, true, false);
 }
 
-int b64_url_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
+int b64_url_encode(char* encoded_str, const size_t output_size_in_bytes, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
+    if (!is_buffer_enough_size(input_size_in_bytes, output_size_in_bytes, false, false)) {
+        return B64_ERROR_BUFFER_SHORTAGE;
+    }
     set_url_encoding_chars();
     return encode(encoded_str, input_bytes, input_size_in_bytes, false, false);
 }
 
-int b64_mime_encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
+int b64_mime_encode(char* encoded_str, const size_t output_size_in_bytes, const uint8_t* input_bytes, const size_t input_size_in_bytes) {
+    if (!is_buffer_enough_size(input_size_in_bytes, output_size_in_bytes, true, true)) {
+        return B64_ERROR_BUFFER_SHORTAGE;
+    }
     set_standard_encoding_chars();
     return encode(encoded_str, input_bytes, input_size_in_bytes, true, true);
 }

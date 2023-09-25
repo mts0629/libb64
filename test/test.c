@@ -22,13 +22,13 @@ void test_encoding_all_b64_chars(void) {
     char encoded_str[sizeof(ALL_B64_CHARS)] = { '\0' };
     size_t exp_length = strlen(ALL_B64_CHARS);
 
-    ASSERT_INT_EQ(exp_length, b64_encode(encoded_str, BYTES_OF_ALL_B64_CHARS, sizeof(BYTES_OF_ALL_B64_CHARS)));
+    ASSERT_INT_EQ(exp_length, b64_encode(encoded_str, sizeof(encoded_str), BYTES_OF_ALL_B64_CHARS, sizeof(BYTES_OF_ALL_B64_CHARS)));
     ASSERT_STR_EQ(ALL_B64_CHARS, encoded_str);
 
-    ASSERT_INT_EQ(exp_length, b64_url_encode(encoded_str, BYTES_OF_ALL_B64_CHARS, sizeof(BYTES_OF_ALL_B64_CHARS)));
+    ASSERT_INT_EQ(exp_length, b64_url_encode(encoded_str, sizeof(encoded_str), BYTES_OF_ALL_B64_CHARS, sizeof(BYTES_OF_ALL_B64_CHARS)));
     ASSERT_STR_EQ(ALL_B64_CHARS_URL_SAFE, encoded_str);
 
-    ASSERT_INT_EQ(exp_length, b64_mime_encode(encoded_str, BYTES_OF_ALL_B64_CHARS, sizeof(BYTES_OF_ALL_B64_CHARS)));
+    ASSERT_INT_EQ(exp_length, b64_mime_encode(encoded_str, sizeof(encoded_str), BYTES_OF_ALL_B64_CHARS, sizeof(BYTES_OF_ALL_B64_CHARS)));
     ASSERT_STR_EQ(ALL_B64_CHARS, encoded_str);
 }
 
@@ -40,15 +40,15 @@ void test_encoding_2bytes_input(void) {
 
     size_t exp_length = strlen(output_b64_chars);
 
-    ASSERT_INT_EQ(exp_length, b64_encode(encoded_str, input_bytes, sizeof(input_bytes)));
+    ASSERT_INT_EQ(exp_length, b64_encode(encoded_str, sizeof(encoded_str), input_bytes, sizeof(input_bytes)));
     ASSERT_STR_EQ(output_b64_chars, encoded_str);
 
     char output_b64_chars_url_safe[] = "__8";
 
-    ASSERT_INT_EQ(strlen(output_b64_chars_url_safe), b64_url_encode(encoded_str, input_bytes, sizeof(input_bytes)));
+    ASSERT_INT_EQ(strlen(output_b64_chars_url_safe), b64_url_encode(encoded_str, sizeof(encoded_str), input_bytes, sizeof(input_bytes)));
     ASSERT_STR_EQ(output_b64_chars_url_safe, encoded_str);
 
-    ASSERT_INT_EQ(exp_length, b64_mime_encode(encoded_str, input_bytes, sizeof(input_bytes)));
+    ASSERT_INT_EQ(exp_length, b64_mime_encode(encoded_str, sizeof(encoded_str), input_bytes, sizeof(input_bytes)));
     ASSERT_STR_EQ(output_b64_chars, encoded_str);
 }
 
@@ -60,14 +60,14 @@ void test_encoding_1byte_input(void) {
 
     size_t exp_length = strlen(output_b64_chars);
 
-    ASSERT_INT_EQ(exp_length, b64_encode(encoded_str, input_bytes, sizeof(input_bytes)));
+    ASSERT_INT_EQ(exp_length, b64_encode(encoded_str, sizeof(encoded_str), input_bytes, sizeof(input_bytes)));
     ASSERT_STR_EQ(output_b64_chars, encoded_str);
 
     char output_b64_chars_url_safe[] = "_w";
-    ASSERT_INT_EQ(strlen(output_b64_chars_url_safe), b64_url_encode(encoded_str, input_bytes, sizeof(input_bytes)));
+    ASSERT_INT_EQ(strlen(output_b64_chars_url_safe), b64_url_encode(encoded_str, sizeof(encoded_str), input_bytes, sizeof(input_bytes)));
     ASSERT_STR_EQ(output_b64_chars_url_safe, encoded_str);
 
-    ASSERT_INT_EQ(exp_length, b64_mime_encode(encoded_str, input_bytes, sizeof(input_bytes)));
+    ASSERT_INT_EQ(exp_length, b64_mime_encode(encoded_str, sizeof(encoded_str), input_bytes, sizeof(input_bytes)));
     ASSERT_STR_EQ(output_b64_chars, encoded_str);
 }
 
@@ -91,16 +91,16 @@ void test_encoding_to_over_76_chars(void) {
 
     size_t exp_len = strlen(B64_CHARS_OVER_76_CHARS);
 
-    ASSERT_INT_EQ(exp_len, b64_encode(encoded_str, BYTES_OF_B64_CHARS_OVER_76_CHARS, sizeof(BYTES_OF_B64_CHARS_OVER_76_CHARS)));
+    ASSERT_INT_EQ(exp_len, b64_encode(encoded_str, sizeof(encoded_str), BYTES_OF_B64_CHARS_OVER_76_CHARS, sizeof(BYTES_OF_B64_CHARS_OVER_76_CHARS)));
     ASSERT_STR_EQ(B64_CHARS_OVER_76_CHARS, encoded_str);
 
     char B64_CHARS_OVER_76_CHARS_URL_SAFE[] =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_ABCDEFGHIJKLMNOP";
 
-    ASSERT_INT_EQ(exp_len, b64_url_encode(encoded_str, BYTES_OF_B64_CHARS_OVER_76_CHARS, sizeof(BYTES_OF_B64_CHARS_OVER_76_CHARS)));
+    ASSERT_INT_EQ(exp_len, b64_url_encode(encoded_str, sizeof(encoded_str), BYTES_OF_B64_CHARS_OVER_76_CHARS, sizeof(BYTES_OF_B64_CHARS_OVER_76_CHARS)));
     ASSERT_STR_EQ(B64_CHARS_OVER_76_CHARS_URL_SAFE, encoded_str);
 
-    ASSERT_INT_EQ(strlen(B64_CHARS_OVER_76_CHARS_WITH_CRLF), b64_mime_encode(encoded_str, BYTES_OF_B64_CHARS_OVER_76_CHARS, sizeof(BYTES_OF_B64_CHARS_OVER_76_CHARS)));
+    ASSERT_INT_EQ(strlen(B64_CHARS_OVER_76_CHARS_WITH_CRLF), b64_mime_encode(encoded_str, sizeof(encoded_str), BYTES_OF_B64_CHARS_OVER_76_CHARS, sizeof(BYTES_OF_B64_CHARS_OVER_76_CHARS)));
     ASSERT_STR_EQ(B64_CHARS_OVER_76_CHARS_WITH_CRLF, encoded_str);
 }
 
@@ -124,9 +124,21 @@ void test_mime_encoding_outputs_no_trailing_CRLF(void) {
 
     char encoded_str[sizeof(B64_CHARS_JUST_2LINES)] = { '\0' };
 
-    ASSERT_INT_EQ(strlen(B64_CHARS_JUST_2LINES), b64_mime_encode(encoded_str, BYTES_OF_B64_CHARS_JUST_2LINES, sizeof(BYTES_OF_B64_CHARS_JUST_2LINES)));
+    ASSERT_INT_EQ(strlen(B64_CHARS_JUST_2LINES), b64_mime_encode(encoded_str, sizeof(encoded_str), BYTES_OF_B64_CHARS_JUST_2LINES, sizeof(BYTES_OF_B64_CHARS_JUST_2LINES)));
 
     ASSERT_STR_EQ(B64_CHARS_JUST_2LINES, encoded_str);
+}
+
+void test_encoding_fails_by_shortage_of_output_size(void) {
+    uint8_t input_bytes[] = { 0xff };
+
+    char encoded_str[1];
+
+    ASSERT_INT_EQ(B64_ERROR_BUFFER_SHORTAGE, b64_encode(encoded_str, sizeof(encoded_str), input_bytes, sizeof(input_bytes)));
+
+    ASSERT_INT_EQ(B64_ERROR_BUFFER_SHORTAGE, b64_url_encode(encoded_str, sizeof(encoded_str), input_bytes, sizeof(input_bytes)));
+
+    ASSERT_INT_EQ(B64_ERROR_BUFFER_SHORTAGE, b64_mime_encode(encoded_str, sizeof(encoded_str), input_bytes, sizeof(input_bytes)));
 }
 
 
@@ -243,6 +255,8 @@ int main(void) {
     ADD_TEST_CASE(test_encoding_to_over_76_chars);
 
     ADD_TEST_CASE(test_mime_encoding_outputs_no_trailing_CRLF);
+
+    ADD_TEST_CASE(test_encoding_fails_by_shortage_of_output_size);
 
     ADD_TEST_CASE(test_decoding_all_b64_chars);
     ADD_TEST_CASE(test_decoding_remaining_2bytes);

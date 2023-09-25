@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    int osize = b64_encode(encoded_str, input_bytes, (size_t)fsize);
+    int osize = b64_encode(encoded_str, max_encoded_size, input_bytes, (size_t)fsize);
 
     printf("Base64 encoding of %s is finished (%lu to %d bytes).\n", fname, read_size, osize);
 
