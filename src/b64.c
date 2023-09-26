@@ -128,37 +128,48 @@ static inline void set_url_encoding_chars(void) {
     set_last2_encoding_chars('-', '_');
 }
 
-static bool is_buffer_enough_size(const size_t input_size_in_bytes, const size_t output_size_in_bytes, const bool use_padding, const bool insert_crlf) {
-    if (output_size_in_bytes == 0) {
-        return false;
+static size_t get_encoded_size(const size_t input_size_in_bytes, const bool use_padding, const bool insert_crlf) {
+    if (input_size_in_bytes == 0) {
+        return 0;
     }
 
-    // Calculate expected size
-    size_t exp_output_size = (input_size_in_bytes >= 3) ? input_size_in_bytes / 3 * 4 : 4;
+    size_t encoded_size = (input_size_in_bytes >= 3) ? input_size_in_bytes / 3 * 4 : 4;
+
     // Reduce padding size if not used
     if (use_padding) {
         switch (input_size_in_bytes % 3) {
             case 1:
-                exp_output_size -= 2;
+                encoded_size -= 2;
                 break;
             case 2:
-                exp_output_size -= 1;
+                encoded_size -= 1;
                 break;
             default:
                 break;
         }
     }
-    // CR+LF
+
+    // Add CR+LF if required
     if (insert_crlf) {
-        int n_lines = (exp_output_size / max_line_length);
-        if ((exp_output_size % max_line_length) == 0) {
+        int n_lines = (encoded_size / max_line_length);
+        if ((encoded_size % max_line_length) == 0) {
             n_lines--;
         }
-        exp_output_size += (n_lines * 2);
+        encoded_size += (n_lines * 2);
     }
-    // NUL
-    exp_output_size += 1;
 
+    // Add NULL character
+    encoded_size += 1;
+
+    return encoded_size;
+}
+
+static bool is_buffer_enough_size(const size_t input_size_in_bytes, const size_t output_size_in_bytes, const bool use_padding, const bool insert_crlf) {
+    if (output_size_in_bytes == 0) {
+        return false;
+    }
+
+    size_t exp_output_size = get_encoded_size(input_size_in_bytes, use_padding, insert_crlf);
     if (exp_output_size > output_size_in_bytes) {
         return false;
     }
