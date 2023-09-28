@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    input_chars = malloc(sizeof(char) * (size_t)fsize);
+    input_chars = malloc(sizeof(char) * ((size_t)fsize + 1)); // Consider NULL character
     if (input_chars == NULL) {
         fprintf(stderr, "Error: failed to allocate memory\n");
         exit(EXIT_FAILURE);

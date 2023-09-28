@@ -29,87 +29,90 @@ static const int max_line_length = 76;
 // Null character
 #define CHAR_NULL '\0'
 
-static char encode_to_1st_char(const uint8_t byte) {
+// Encode each 6 bit unit in an encoding block
+static inline char encode_to_1st_char(const uint8_t byte) {
     return encoding_table[(byte & 0xfc) >> 2];
 }
 
-static char encode_to_2nd_char(const uint8_t byte1, const uint8_t byte2) {
+static inline char encode_to_2nd_char(const uint8_t byte1, const uint8_t byte2) {
     return encoding_table[((byte1 & 0x03) << 4) | ((byte2 & 0xf0) >> 4)];
 }
 
-static char encode_to_3rd_char(const uint8_t byte1, const uint8_t byte2) {
+static inline char encode_to_3rd_char(const uint8_t byte1, const uint8_t byte2) {
     return encoding_table[((byte1 & 0x0f) << 2) | ((byte2 & 0xc0) >> 6)];
 }
 
-static char encode_to_4th_char(const uint8_t byte) {
+static inline char encode_to_4th_char(const uint8_t byte) {
     return encoding_table[byte & 0x3f];
 }
 
-static int encode(char* encoded_str, const uint8_t* input_bytes, const size_t input_size_in_bytes, const bool use_padding, const bool insert_crlf) {
+static void encode_to_4chars(char* dest, const uint8_t* src, const int num_remaining_bytes, const bool use_padding) {
+    dest[0] = encode_to_1st_char(src[0]);
+    switch (num_remaining_bytes) {
+        case 1:
+            dest[1] = encode_to_2nd_char(src[0], 0x00);
+            if (use_padding) {
+                dest[2] = padding;
+                dest[3] = padding;
+            }
+            break;
+        case 2:
+            dest[1] = encode_to_2nd_char(src[0], src[1]);
+            dest[2] = encode_to_3rd_char(src[1], 0x00);
+            if (use_padding) {
+                dest[3] = padding;
+            }
+            break;
+        default:
+            dest[1] = encode_to_2nd_char(src[0], src[1]);
+            dest[2] = encode_to_3rd_char(src[1], src[2]);
+            dest[3] = encode_to_4th_char(src[2]);
+            break;
+    }
+}
 
-    int input_index = 0;
-    int encoded_index = 0;
+// Encode bytes to Base64 string
+static int encode(char* dest, const uint8_t* src, const size_t src_size, const bool use_padding, const bool insert_crlf) {
+    int src_index = 0;
+    int dest_index = 0;
 
     int num_encoded_chars = 0;
+    int num_remaining_bytes = (int)src_size;
 
-    int num_remaining_inputs = (int)input_size_in_bytes;
-
-    while (num_remaining_inputs > 0) {
+    while (num_remaining_bytes > 0) {
         // Convert 3 input characters to 4 base64-encoded characters
-        const uint8_t* current_input = &input_bytes[input_index];
-        char* current_output = &encoded_str[encoded_index];
+        encode_to_4chars(&dest[dest_index], &src[src_index], num_remaining_bytes, use_padding);
 
-        current_output[0] = encode_to_1st_char(current_input[0]);
-        switch (num_remaining_inputs) {
-            case 1:
-                current_output[1] = encode_to_2nd_char(current_input[0], 0x00);
-                if (use_padding) {
-                    current_output[2] = padding;
-                    current_output[3] = padding;
-                    encoded_index += 4;
-                } else {
-                    encoded_index += 2;
-                }
-                break;
-            case 2:
-                current_output[1] = encode_to_2nd_char(current_input[0], current_input[1]);
-                current_output[2] = encode_to_3rd_char(current_input[1], 0x00);
-                if (use_padding) {
-                    current_output[3] = padding;
-                    encoded_index += 4;
-                } else {
-                    encoded_index += 3;
-                }
-                break;
-            default:
-                current_output[1] = encode_to_2nd_char(current_input[0], current_input[1]);
-                current_output[2] = encode_to_3rd_char(current_input[1], current_input[2]);
-                current_output[3] = encode_to_4th_char(current_input[2]);
-                encoded_index += 4;
-                num_encoded_chars += 4;
-                break;
+        if (use_padding || (num_remaining_bytes >= 3)) {
+            src_index += 3;
+            dest_index += 4;
+
+            num_remaining_bytes -= 3;
+            num_encoded_chars += 4;
+        } else {
+            src_index += num_remaining_bytes;
+            dest_index += (num_remaining_bytes + 1);
+
+            num_remaining_bytes -= num_remaining_bytes;
+            num_encoded_chars += (num_remaining_bytes + 1);
         }
-
-        input_index += 3;
-
-        num_remaining_inputs -= 3;
 
         // Insert CR+LF
         if (insert_crlf) {
-            if (num_remaining_inputs > 0) {
+            if (num_remaining_bytes > 0) {
                 if ((num_encoded_chars % max_line_length) == 0) {
-                    encoded_str[encoded_index] = CHAR_CR;
-                    encoded_str[encoded_index + 1] = CHAR_LF;
-                    encoded_index += 2;
+                    dest[dest_index] = CHAR_CR;
+                    dest[dest_index + 1] = CHAR_LF;
+                    dest_index += 2;
                 }
             }
         }
     }
 
     // Terminate encoded string
-    encoded_str[encoded_index] = CHAR_NULL;
+    dest[dest_index] = CHAR_NULL;
 
-    return encoded_index;
+    return dest_index;
 }
 
 // Set the last 2 (62nd and 63rd) encoding character
@@ -128,49 +131,41 @@ static inline void set_url_encoding_chars(void) {
     set_last2_encoding_chars('-', '_');
 }
 
-static size_t get_encoded_size(const size_t input_size_in_bytes, const bool use_padding, const bool insert_crlf) {
-    if (input_size_in_bytes == 0) {
+// Get Base64 encoded size
+static size_t get_encoded_size(const size_t src_size, const bool use_padding, const bool insert_crlf) {
+    if (src_size == 0) {
         return 0;
     }
 
-    size_t encoded_size = (input_size_in_bytes >= 3) ? input_size_in_bytes / 3 * 4 : 4;
+    size_t num_6bit_blocks = (src_size * 8 + 5) / 6;
+    size_t encoded_size = (num_6bit_blocks + 3) / 4 * 4;
 
-    // Reduce padding size if not used
-    if (use_padding) {
-        switch (input_size_in_bytes % 3) {
-            case 1:
-                encoded_size -= 2;
-                break;
-            case 2:
-                encoded_size -= 1;
-                break;
-            default:
-                break;
-        }
+    // Reduce padding size if not required
+    if (!use_padding) {
+        encoded_size -= (num_6bit_blocks % 4);
     }
 
     // Add CR+LF if required
     if (insert_crlf) {
-        int n_lines = (encoded_size / max_line_length);
+        int num_lines = encoded_size / max_line_length;
         if ((encoded_size % max_line_length) == 0) {
-            n_lines--;
+            num_lines--;
         }
-        encoded_size += (n_lines * 2);
+        encoded_size += (num_lines * 2);
     }
 
-    // Add NULL character
-    encoded_size += 1;
-
-    return encoded_size;
+    // Consider null charecter
+    return encoded_size + 1;
 }
 
-static bool is_buffer_enough_size(const size_t input_size_in_bytes, const size_t max_buf_size, const bool use_padding, const bool insert_crlf) {
-    if (max_buf_size == 0) {
+// Verify that dest buffer is enough size to store encoded output
+static bool is_dest_size_enough(const size_t src_size, const size_t max_dest_size, const bool use_padding, const bool insert_crlf) {
+    if (max_dest_size == 0) {
         return false;
     }
 
-    size_t exp_output_size = get_encoded_size(input_size_in_bytes, use_padding, insert_crlf);
-    if (exp_output_size > max_buf_size) {
+    size_t encoded_size = get_encoded_size(src_size, use_padding, insert_crlf);
+    if (encoded_size > max_dest_size) {
         return false;
     }
 
@@ -178,7 +173,7 @@ static bool is_buffer_enough_size(const size_t input_size_in_bytes, const size_t
 }
 
 int b64_encode(char* dest, const size_t max_dest_size, const void* src, const size_t src_size) {
-    if (!is_buffer_enough_size(src_size, max_dest_size, true, false)) {
+    if (!is_dest_size_enough(src_size, max_dest_size, true, false)) {
         return B64_ERROR_BUFFER_SHORTAGE;
     }
     set_standard_encoding_chars();
@@ -186,7 +181,7 @@ int b64_encode(char* dest, const size_t max_dest_size, const void* src, const si
 }
 
 int b64_url_encode(char* dest, const size_t max_dest_size, const void* src, const size_t src_size) {
-    if (!is_buffer_enough_size(src_size, max_dest_size, false, false)) {
+    if (!is_dest_size_enough(src_size, max_dest_size, false, false)) {
         return B64_ERROR_BUFFER_SHORTAGE;
     }
     set_url_encoding_chars();
@@ -194,7 +189,7 @@ int b64_url_encode(char* dest, const size_t max_dest_size, const void* src, cons
 }
 
 int b64_mime_encode(char* dest, const size_t max_dest_size, const void* src, const size_t src_size) {
-    if (!is_buffer_enough_size(src_size, max_dest_size, true, true)) {
+    if (!is_dest_size_enough(src_size, max_dest_size, true, true)) {
         return B64_ERROR_BUFFER_SHORTAGE;
     }
     set_standard_encoding_chars();
@@ -218,7 +213,8 @@ static uint8_t decode_b64_char(const char c) {
     return 0x00;
 }
 
-static bool is_valid_b64_char(const char c) {
+// Verify that the character is as Base64
+static inline bool is_valid_b64_char(const char c) {
     if (isalnum(c) || (c == encoding_table[62]) || (c == encoding_table[63])) {
         return true;
     }
@@ -226,11 +222,12 @@ static bool is_valid_b64_char(const char c) {
     return false;
 }
 
-bool is_valid_input(const char* input_string) {
-    size_t length = strlen(input_string);
+// Verify that the string is valid as Base64
+static bool is_valid_b64_string(const char* str) {
+    size_t length = strlen(str);
 
     for (size_t i = 0; i < length; ++i) {
-        const char c = input_string[i];
+        const char c = str[i];
         if (!is_valid_b64_char(c) && (c != CHAR_CR) && (c != CHAR_LF) && (c != padding)) {
             return false;
         }
@@ -239,85 +236,88 @@ bool is_valid_input(const char* input_string) {
     return true;
 }
 
-static uint8_t decode_to_1st_byte(const char char1, const char char2) {
+// Decode each Base64 characters in a group of 4 chars
+static inline uint8_t decode_to_1st_byte(const char char1, const char char2) {
     return ((decode_b64_char(char1) & 0x3f) << 2) | ((decode_b64_char(char2) & 0x30) >> 4);
 }
 
-static uint8_t decode_to_2nd_byte(const char char1, const char char2) {
+static inline uint8_t decode_to_2nd_byte(const char char1, const char char2) {
     return ((decode_b64_char(char1) & 0x0f) << 4) | ((decode_b64_char(char2) & 0x3c) >> 2);
 }
 
-static uint8_t decode_to_3rd_byte(const char char1, const char char2) {
+static inline uint8_t decode_to_3rd_byte(const char char1, const char char2) {
     return ((decode_b64_char(char1) & 0x03) << 6) | (decode_b64_char(char2) & 0x3f);
 }
 
-static int decode(uint8_t* decoded_bytes, const char* input_string) {
-    int input_index = 0;
-    int output_index = 0;
+static void decode_to_3bytes(uint8_t* dest, const char* src, const int num_to_decode) {
+    switch (num_to_decode) {
+        case 2:
+            dest[0] = decode_to_1st_byte(src[0], src[1]);
+            break;
+        case 3:
+            dest[0] = decode_to_1st_byte(src[0], src[1]);
+            dest[1] = decode_to_2nd_byte(src[1], src[2]);
+            break;
+        case 4:
+            dest[0] = decode_to_1st_byte(src[0], src[1]);
+            dest[1] = decode_to_2nd_byte(src[1], src[2]);
+            dest[2] = decode_to_3rd_byte(src[2], src[3]);
+            break;
+        default:
+            break;
+    }
+}
 
-    int num_remaining_inputs = (int)strlen(input_string);
+// Decode Base64 string to bytes
+static int decode(uint8_t* dest, const char* src) {
+    int src_index = 0;
+    int dest_index = 0;
 
-    char current_input[4];
-    while (num_remaining_inputs > 0) {
-        const int max_num_to_decode = (num_remaining_inputs >= 4) ? 4 : num_remaining_inputs;
+    int num_remaining_chars = (int)strlen(src);
+
+    char decoding_chars[4];
+    while (num_remaining_chars > 0) {
+        const int max_num_to_decode = (num_remaining_chars >= 4) ? 4 : num_remaining_chars;
         int num_to_decode = 0;
         while (num_to_decode < max_num_to_decode) {
-            // Finish decoding when reached to NULL or padding ('=') character
-            if ((input_string[input_index] == CHAR_NULL) || 
-                (input_string[input_index] == padding)) {
+            // Finish decoding when reached to null or padding character
+            if ((src[src_index] == CHAR_NULL) || (src[src_index] == padding)) {
                 break;
             }
-            // Decoding fails when an input string contains invalid character
-            if (is_valid_b64_char(input_string[input_index])) {
-                current_input[num_to_decode] = input_string[input_index];
-                ++input_index;
+            // Put a character to be decoded into temporal buffer
+            if (is_valid_b64_char(src[src_index])) {
+                decoding_chars[num_to_decode] = src[src_index];
+                ++src_index;
                 ++num_to_decode;
             } else {
-                // Non encoding characters or CRLF
-                ++input_index;
+                // Skip non encoding characters or CRLF
+                ++src_index;
                 continue;
             }
         }
 
         if (num_to_decode > 0) {
-            // Convert 4 input characters to 3 base64-decoded bytes
-            uint8_t* current_output = &decoded_bytes[output_index];
-            switch (num_to_decode) {
-                case 1:
-                    // If num_to_decode == 1, the length of the original input bytes is less than 1byte
-                    // and the encoding fails
-                    return B64_ERROR_REMAINING_BITS;
-                    break;
-                case 2:
-                    current_output[0] = decode_to_1st_byte(current_input[0], current_input[1]);
-                    output_index += 1;
-                    break;
-                case 3:
-                    current_output[0] = decode_to_1st_byte(current_input[0], current_input[1]);
-                    current_output[1] = decode_to_2nd_byte(current_input[1], current_input[2]);
-                    output_index += 2;
-                    break;
-                case 4:
-                    current_output[0] = decode_to_1st_byte(current_input[0], current_input[1]);
-                    current_output[1] = decode_to_2nd_byte(current_input[1], current_input[2]);
-                    current_output[2] = decode_to_3rd_byte(current_input[2], current_input[3]);
-                    output_index += 3;
-                    break;
-                default:
-                    return 0;
-                    break;
+            if (num_to_decode == 1) {
+                // If num_to_decode == 1, the remaining length of the input is less than 1byte
+                // therefore encoding fails
+                return B64_ERROR_REMAINING_BITS;
             }
+
+            // Convert 4 input characters to 3 base64-decoded bytes
+            decode_to_3bytes(&dest[dest_index], decoding_chars, num_to_decode);
+
+            dest_index += (num_to_decode - 1);
         }
 
-        num_remaining_inputs -= 4;
+        num_remaining_chars -= 4;
     }
 
-    return output_index;
+    return dest_index;
 }
 
 int b64_decode(void* dest, const char* src) {
     set_standard_encoding_chars();
-    if (!is_valid_input(src)) {
+    if (!is_valid_b64_string(src)) {
         return B64_ERROR_INVALID_CHAR;
     }
     return decode(dest, src);
@@ -325,7 +325,7 @@ int b64_decode(void* dest, const char* src) {
 
 int b64_url_decode(void* dest, const char* src) {
     set_url_encoding_chars();
-    if (!is_valid_input(src)) {
+    if (!is_valid_b64_string(src)) {
         return B64_ERROR_INVALID_CHAR;
     }
     return decode(dest, src);
