@@ -72,7 +72,7 @@ static void encode_to_4chars(char* dest, const uint8_t* src, const int num_remai
 }
 
 // Encode bytes to Base64 string
-static int encode(char* dest, const uint8_t* src, const size_t src_size, const bool use_padding, const bool insert_crlf) {
+static void encode(char* dest, const uint8_t* src, const size_t src_size, const bool use_padding, const bool insert_crlf) {
     int src_index = 0;
     int dest_index = 0;
 
@@ -111,8 +111,6 @@ static int encode(char* dest, const uint8_t* src, const size_t src_size, const b
 
     // Terminate encoded string
     dest[dest_index] = CHAR_NULL;
-
-    return dest_index;
 }
 
 // Set the last 2 (62nd and 63rd) encoding character
@@ -142,7 +140,10 @@ static size_t get_encoded_size(const size_t src_size, const bool use_padding, co
 
     // Reduce padding size if not required
     if (!use_padding) {
-        encoded_size -= (num_6bit_blocks % 4);
+        size_t num_padding = 4 - (num_6bit_blocks % 4);
+        if (num_padding <= 3) {
+            encoded_size -= num_padding;
+        }
     }
 
     // Add CR+LF if required
@@ -177,7 +178,10 @@ int b64_encode(char* dest, const size_t max_dest_size, const void* src, const si
         return B64_ERROR_BUFFER_SHORTAGE;
     }
     set_standard_encoding_chars();
-    return encode(dest, src, src_size, true, false);
+    int size = get_encoded_size(src_size, true, false);
+    encode(dest, src, src_size, true, false);
+
+    return size - 1; // Subtract NULL character
 }
 
 int b64_url_encode(char* dest, const size_t max_dest_size, const void* src, const size_t src_size) {
@@ -185,7 +189,10 @@ int b64_url_encode(char* dest, const size_t max_dest_size, const void* src, cons
         return B64_ERROR_BUFFER_SHORTAGE;
     }
     set_url_encoding_chars();
-    return encode(dest, src, src_size, false, false);
+    int size = get_encoded_size(src_size, false, false);
+    encode(dest, src, src_size, false, false);
+
+    return size - 1; // Subtract NULL character
 }
 
 int b64_mime_encode(char* dest, const size_t max_dest_size, const void* src, const size_t src_size) {
@@ -193,7 +200,10 @@ int b64_mime_encode(char* dest, const size_t max_dest_size, const void* src, con
         return B64_ERROR_BUFFER_SHORTAGE;
     }
     set_standard_encoding_chars();
-    return encode(dest, src, src_size, true, true);
+    int size = get_encoded_size(src_size, true, true);
+    encode(dest, src, src_size, true, true);
+
+    return size - 1; // Subtract NULL character
 }
 
 // Convert a input character to an index of the base64 encoding table
@@ -269,7 +279,7 @@ static void decode_to_3bytes(uint8_t* dest, const char* src, const int num_to_de
 }
 
 // Decode Base64 string to bytes
-static int decode(uint8_t* dest, const char* src) {
+static void decode(uint8_t* dest, const char* src) {
     int src_index = 0;
     int dest_index = 0;
 
@@ -297,12 +307,6 @@ static int decode(uint8_t* dest, const char* src) {
         }
 
         if (num_to_decode > 0) {
-            if (num_to_decode == 1) {
-                // If num_to_decode == 1, the remaining length of the input is less than 1byte
-                // therefore encoding fails
-                return B64_ERROR_REMAINING_BITS;
-            }
-
             // Convert 4 input characters to 3 base64-decoded bytes
             decode_to_3bytes(&dest[dest_index], decoding_chars, num_to_decode);
 
@@ -311,27 +315,79 @@ static int decode(uint8_t* dest, const char* src) {
 
         num_remaining_chars -= 4;
     }
+}
 
-    return dest_index;
+// Get decoded size
+static int get_decoded_size(const char* src) {
+    size_t src_size = strlen(src);
+    if (src_size == 0) {
+        return 0;
+    }
+
+    size_t num_encoding_chars = 0;
+    for (size_t i = 0; i < src_size; ++i) {
+        if (is_valid_b64_char(src[i])) {
+            num_encoding_chars++;
+        }
+    }
+
+    size_t decoded_size = num_encoding_chars / 4 * 3;
+    size_t remaining_bytes = num_encoding_chars % 4;
+    if (remaining_bytes > 0) {
+        if (remaining_bytes == 1) {
+            return -1;
+        }
+        decoded_size += (remaining_bytes - 1);
+    }
+
+    return decoded_size;
 }
 
 int b64_decode(void* dest, const char* src) {
     set_standard_encoding_chars();
+
     if (!is_valid_b64_string(src)) {
         return B64_ERROR_INVALID_CHAR;
     }
-    return decode(dest, src);
+
+    int size = get_decoded_size(src);
+    if (size < 0) {
+        // Remaining length of the input is less than 1byte,
+        // therefore decoding fails
+        return B64_ERROR_REMAINING_BITS;
+    }
+
+    decode(dest, src);
+
+    return size;
 }
 
 int b64_url_decode(void* dest, const char* src) {
     set_url_encoding_chars();
+
     if (!is_valid_b64_string(src)) {
         return B64_ERROR_INVALID_CHAR;
     }
-    return decode(dest, src);
+
+    int size = get_decoded_size(src);
+    if (size < 0) {
+        return B64_ERROR_REMAINING_BITS;
+    }
+
+    decode(dest, src);
+
+    return size;
 }
 
 int b64_mime_decode(void* dest, const char* src) {
     set_standard_encoding_chars();
-    return decode(dest, src);
+
+    int size = get_decoded_size(src);
+    if (size < 0) {
+        return B64_ERROR_REMAINING_BITS;
+    }
+
+    decode(dest, src);
+
+    return size;
 }
