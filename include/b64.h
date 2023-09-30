@@ -15,45 +15,37 @@
 #define B64_ERROR_REMAINING_BITS -2
 
 /**
- * @def Error by shortage of the output buffer
- */
-#define B64_ERROR_BUFFER_SHORTAGE -3
-
-/**
  * @brief Encode byte array by Base64
  * 
- * @param[out] dest Pointer to the output buffer storing Base64-encoded string
- * @param[in] max_dest_size Max byte size of the buffer
+ * @param[out] length Length of the encoded string
  * @param[in] src Pointer to the input byte array
  * @param[in] src_size Byte size of the input
- * @return Byte size of the encoded string, NULL-terminated
- * @retval B64_ERROR_BUFFER_SHORTAGE Shortage of the output buffer
+ * @return Pointer to the encoded string, NULL-terminated
+ * @retval NULL Encoding failed
  */
-int b64_encode(char* dest, const size_t max_dest_size, const void* src, const size_t src_size);
+char* b64_encode(int* length, const void* src, const size_t src_size);
 
 /**
  * @brief Encode byte array by URL-safe Base64
  * 
- * @param[out] dest Pointer to the output buffer storing URL-safe Base64-encoded string
- * @param[in] max_dest_size Max byte size of the buffer
+ * @param[out] length Length of the encoded string
  * @param[in] src Pointer to the input byte array
  * @param[in] src_size Byte size of the input
- * @return Byte size of the encoded string, NULL-terminated
- * @retval B64_ERROR_BUFFER_SHORTAGE Shortage of the output buffer
+ * @return Pointer to the encoded string, NULL-terminated, dynamically allocated
+ * @retval NULL Encoding failed
  */
-int b64_url_encode(char* dest, const size_t max_dest_size, const void* src, const size_t src_size);
+char* b64_url_encode(int* length, const void* src, const size_t src_size);
 
 /**
  * @brief Encode byte array by Base64 for MIME
  * 
- * @param[out] dest Pointer to the output buffer storing Base64-MIME-encoded string
- * @param[in] max_dest_size Max byte size of the buffer
+ * @param[out] length Length of the encoded string
  * @param[in] src Pointer to the input byte array
  * @param[in] src_size Byte size of the input
- * @return Byte size of the encoded string, NULL-terminated
- * @retval B64_ERROR_BUFFER_SHORTAGE Shortage of the output buffer
+ * @return Pointer to the encoded string, NULL-terminated, dynamically allocated
+ * @retval NULL Encoding failed
  */
-int b64_mime_encode(char* dest, const size_t max_dest_size, const void* src, const size_t src_size);
+char* b64_mime_encode(int* length, const void* src, const size_t src_size);
 
 /**
  * @brief Decode Base64 string

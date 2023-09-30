@@ -61,13 +61,15 @@ void encode_sample(void) {
         0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47
     };
 
-    // Output string of sufficient byte size, includes a NUL character ('\0')
-    char base64_str[12 + 1];
-
-    assert(b64_encode(base64_str, sizeof(base64_str), input_bytes, sizeof(input_bytes)) == 12);
+    // Output string is allocated dynamically
+    int length;
+    char* base64_str = b64_encode(&length, input_bytes, sizeof(input_bytes));
+    assert(length == 12);
 
     // "QUJDREVGRw=="
     printf("%s\n", base64_str);
+
+    free(base64_str);
 }
 ```
 

@@ -95,14 +95,8 @@ int main(int argc, char* argv[]) {
 
     fclose(fp);
 
-    size_t max_encoded_size = (size_t)(fsize * 2);
-    encoded_str = malloc(sizeof(char) * max_encoded_size);
-    if (encoded_str == NULL) {
-        fprintf(stderr, "Error: failed to allocate memory\n");
-        exit(EXIT_FAILURE);
-    }
-
-    int osize = b64_encode(encoded_str, max_encoded_size, input_bytes, (size_t)fsize);
+    int osize;
+    char* encoded_str = b64_encode(&osize, input_bytes, (size_t)fsize);
 
     printf("Base64 encoding of %s is finished (%lu to %d bytes).\n", fname, read_size, osize);
 
@@ -111,6 +105,8 @@ int main(int argc, char* argv[]) {
     }
 
     printf("The string is written to '%s'.\n", out_fname);
+
+    free(encoded_str);
 
     return EXIT_SUCCESS;
 }

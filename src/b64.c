@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "b64.h"
@@ -159,51 +160,51 @@ static size_t get_encoded_size(const size_t src_size, const bool use_padding, co
     return encoded_size + 1;
 }
 
-// Verify that dest buffer is enough size to store encoded output
-static bool is_dest_size_enough(const size_t src_size, const size_t max_dest_size, const bool use_padding, const bool insert_crlf) {
-    if (max_dest_size == 0) {
-        return false;
-    }
-
-    size_t encoded_size = get_encoded_size(src_size, use_padding, insert_crlf);
-    if (encoded_size > max_dest_size) {
-        return false;
-    }
-
-    return true;
-}
-
-int b64_encode(char* dest, const size_t max_dest_size, const void* src, const size_t src_size) {
-    if (!is_dest_size_enough(src_size, max_dest_size, true, false)) {
-        return B64_ERROR_BUFFER_SHORTAGE;
-    }
+char* b64_encode(int* length, const void* src, const size_t src_size) {
     set_standard_encoding_chars();
+
     int size = get_encoded_size(src_size, true, false);
-    encode(dest, src, src_size, true, false);
+    char* buf = malloc(sizeof(char) * size);
+    if (buf == NULL) {
+        return NULL;
+    }
 
-    return size - 1; // Subtract NULL character
+    encode(buf, src, src_size, true, false);
+    *length = strlen(buf);
+
+    return buf;
 }
 
-int b64_url_encode(char* dest, const size_t max_dest_size, const void* src, const size_t src_size) {
-    if (!is_dest_size_enough(src_size, max_dest_size, false, false)) {
-        return B64_ERROR_BUFFER_SHORTAGE;
-    }
+char* b64_url_encode(int* length, const void* src, const size_t src_size) {
     set_url_encoding_chars();
-    int size = get_encoded_size(src_size, false, false);
-    encode(dest, src, src_size, false, false);
 
-    return size - 1; // Subtract NULL character
+    int size = get_encoded_size(src_size, false, false);
+    char* buf = malloc(sizeof(char) * size);
+    if (buf == NULL) {
+        return NULL;
+    }
+
+    encode(buf, src, src_size, false, false);
+
+    *length = strlen(buf);
+
+    return buf;
 }
 
-int b64_mime_encode(char* dest, const size_t max_dest_size, const void* src, const size_t src_size) {
-    if (!is_dest_size_enough(src_size, max_dest_size, true, true)) {
-        return B64_ERROR_BUFFER_SHORTAGE;
-    }
+char* b64_mime_encode(int* length, const void* src, const size_t src_size) {
     set_standard_encoding_chars();
-    int size = get_encoded_size(src_size, true, true);
-    encode(dest, src, src_size, true, true);
 
-    return size - 1; // Subtract NULL character
+    int size = get_encoded_size(src_size, true, true);
+    char* buf = malloc(sizeof(char) * size);
+    if (buf == NULL) {
+        return NULL;
+    }
+
+    encode(buf, src, src_size, true, true);
+
+    *length = strlen(buf);
+
+    return buf;
 }
 
 // Convert a input character to an index of the base64 encoding table
