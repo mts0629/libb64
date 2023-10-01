@@ -105,6 +105,9 @@ static void encode_to_4chars(char* dest, const uint8_t* src, const int num_remai
 // Encode bytes to Base64 string
 static char* encode(size_t* length, const uint8_t* src, const size_t src_size, const bool use_padding, const bool insert_crlf) {
     size_t encoded_size = get_encoded_size(src_size, use_padding, insert_crlf);
+    if (encoded_size == 0) {
+        return NULL;
+    }
 
     char* buf = malloc(sizeof(char) * encoded_size);
     if (buf == NULL) {
@@ -231,7 +234,9 @@ static size_t get_decoded_size(const char* src) {
     size_t remaining_bytes = num_encoding_chars % 4;
     if (remaining_bytes > 0) {
         if (remaining_bytes == 1) {
-            return -1;
+            // It means that the remaining length of the input is less than
+            // 1 byte (6bit), therefore decoding fails
+            return 0;
         }
         decoded_size += (remaining_bytes - 1);
     }
@@ -292,8 +297,6 @@ static void decode_to_3bytes(uint8_t* dest, const char* src, const int num_to_de
 static void* decode(size_t* size, const char* src) {
     size_t decoded_size = get_decoded_size(src);
     if (decoded_size == 0) {
-        // Remaining length of the input is less than 1byte,
-        // therefore decoding fails
         return NULL;
     }
 

@@ -158,6 +158,16 @@ void test_mime_encoding_outputs_no_trailing_CRLF(void) {
     FREE_NULL(encoded_str);
 }
 
+void test_encoding_fails_when_input_size_is_0(void) {
+    uint8_t input_bytes[] = { 0x00 };
+
+    size_t length;
+
+    ASSERT_NULL(b64_encode(&length, input_bytes, 0));
+    ASSERT_NULL(b64_url_encode(&length, input_bytes, 0));
+    ASSERT_NULL(b64_mime_encode(&length, input_bytes, 0));
+}
+
 
 void test_decoding_all_b64_chars(void) {
     size_t size;
@@ -251,6 +261,16 @@ void test_mime_decoding_with_non_encoding_char(void) {
     FREE_NULL(output_bytes);
 }
 
+void test_decoding_fails_when_input_size_is_0(void) {
+    char input_b64_chars[] = "";
+
+    size_t size;
+
+    ASSERT_NULL(b64_decode(&size, input_b64_chars));
+    ASSERT_NULL(b64_url_decode(&size, input_b64_chars));
+    ASSERT_NULL(b64_mime_decode(&size, input_b64_chars));
+}
+
 void test_decoding_fails_less_than_1byte(void) {
     char input_b64_chars[] = "/===";
 
@@ -281,6 +301,8 @@ int main(void) {
 
     ADD_TEST_CASE(test_mime_encoding_outputs_no_trailing_CRLF);
 
+    ADD_TEST_CASE(test_encoding_fails_when_input_size_is_0);
+
     ADD_TEST_CASE(test_decoding_all_b64_chars);
     ADD_TEST_CASE(test_decoding_remaining_2bytes);
     ADD_TEST_CASE(test_decoding_remaining_1byte);
@@ -288,6 +310,7 @@ int main(void) {
     ADD_TEST_CASE(test_mime_decoding_with_multi_line_encoding_chars);
     ADD_TEST_CASE(test_mime_decoding_with_non_encoding_char);
 
+    ADD_TEST_CASE(test_decoding_fails_when_input_size_is_0);
     ADD_TEST_CASE(test_decoding_fails_less_than_1byte);
     ADD_TEST_CASE(test_decoding_fails_with_non_encoding_char);
 
