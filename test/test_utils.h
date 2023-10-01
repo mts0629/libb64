@@ -18,16 +18,16 @@ void add_test_case(void (*test_func)(void), const char* name);
 void run_all_tests(void);
 
 // Check equality of size_t value
-bool assert_size_eq(const size_t expected, const size_t actual);
+bool assert_size_eq(const size_t expected, const size_t actual, const char* file, const int line);
 
 // Check equality of NULL-terminated string
-bool assert_str_eq(const char *expected, const char *actual);
+bool assert_str_eq(const char *expected, const char *actual, const char* file, const int line);
 
 // Check equality of byte array
-bool assert_mem_eq(const uint8_t *expected, const uint8_t *actual, const size_t size);
+bool assert_mem_eq(const uint8_t *expected, const uint8_t *actual, const size_t size, const char* file, const int line);
 
 // Check the pointer is NULL
-bool assert_null(void* ptr);
+bool assert_null(void* ptr, const char* file, const int line);
 
 /**********************/
 // Test utility macros
@@ -39,27 +39,27 @@ bool assert_null(void* ptr);
 
 // Check equality of interger and return when it was different
 #define ASSERT_SIZE_EQ(expected, actual) { \
-    if (!assert_size_eq((expected), (actual))) { \
+    if (!assert_size_eq((expected), (actual), __FILE__, __LINE__)) { \
         return; \
     } \
 }
 
 // Check equality of NULL-terminated string and return when it was different
 #define ASSERT_STR_EQ(expected, actual) { \
-    if (!assert_str_eq((expected), (actual))) { \
+    if (!assert_str_eq((expected), (actual), __FILE__, __LINE__)) { \
         return; \
     } \
 }
 
 // Check equality of byte array and return when it was different
 #define ASSERT_MEM_EQ(expected, actual, size) { \
-    if (!assert_mem_eq((expected), (actual), (size))) { \
+    if (!assert_mem_eq((expected), (actual), (size), __FILE__, __LINE__)) { \
         return; \
     } \
 }
 
 #define ASSERT_NULL(ptr) { \
-    if (!assert_null((ptr))) { \
+    if (!assert_null((ptr), __FILE__, __LINE__)) { \
         return; \
     } \
 }

@@ -73,25 +73,25 @@ inline static void set_current_test_case_failed(void) {
     group.cases[current_case_index].passed = false;
 }
 
-bool assert_size_eq(const size_t expected, const size_t actual) {
+bool assert_size_eq(const size_t expected, const size_t actual, const char* file, const int line) {
     if (expected != actual) {
-        fprintf(stderr, "FAIL: expected %lu was %lu\n", expected, actual);
+        fprintf(stderr, "FAIL: expected %lu was %lu, %s line %d\n", expected, actual, file, line);
         set_current_test_case_failed();
         return false;
     }
     return true;
 }
 
-bool assert_str_eq(const char *expected, const char *actual) {
+bool assert_str_eq(const char *expected, const char *actual, const char* file, const int line) {
     if (strcmp(expected, actual) != 0) {
-        fprintf(stderr, "FAIL: expected %s was %s\n", expected, actual);
+        fprintf(stderr, "FAIL: expected %s was %s, %s line %d\n", expected, actual, file, line);
         set_current_test_case_failed();
         return false;
     }
     return true;
 }
 
-bool assert_mem_eq(const uint8_t *expected, const uint8_t *actual, const size_t size) {
+bool assert_mem_eq(const uint8_t *expected, const uint8_t *actual, const size_t size, const char* file, const int line) {
     if (memcmp(expected, actual, size) != 0) {
         fprintf(stderr, "FAIL: expected 0x");
         for (size_t i = 0; i < size; ++i) {
@@ -101,16 +101,16 @@ bool assert_mem_eq(const uint8_t *expected, const uint8_t *actual, const size_t 
         for (size_t i = 0; i < size; ++i) {
             printf("%02x", actual[i]);
         }
-        fprintf(stderr, "\n");
+        fprintf(stderr, ", %s line %d\n", file, line);
         set_current_test_case_failed();
         return false;
     }
     return true;
 }
 
-bool assert_null(void* ptr) {
+bool assert_null(void* ptr, const char* file, const int line) {
     if (ptr != NULL) {
-        fprintf(stderr, "FAIL: %p is not NULL, %p", ptr, ptr);
+        fprintf(stderr, "FAIL: %p is not NULL, %p, %s line %d", ptr, ptr, file, line);
         set_current_test_case_failed();
         return false;
     }
