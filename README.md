@@ -63,7 +63,7 @@ void encode_sample(void) {
 
     // Output string is allocated dynamically
     size_t length;
-    char* base64_str = b64_encode(&length, input_bytes, sizeof(input_bytes));
+    char* base64_str = b64_std_encode(&length, input_bytes, sizeof(input_bytes));
     assert(length == 12);
 
     // "QUJDREVGRw=="
@@ -72,6 +72,19 @@ void encode_sample(void) {
     free(base64_str);
 }
 ```
+
+- `b64_std_encode`: standard encoding
+    - 62nd/63rd encoding character: `+`/ `/`
+    - Padding: `=`
+    - No line breaks
+- `b64_url_encode`: URL-safe encoding
+    - 62nd/63rd encoding character: `-`/ `_`
+    - Padding: not used
+    - No line breaks
+- `b64_mime_decode`: MIME encoding
+    - 62nd/63rd encoding character: `+`/ `/`
+    - Padding: `=`
+    - Line break by `CR`+`LF` is inserted every 76 characters in the decoded string
 
 ### Decoding
 
@@ -84,7 +97,7 @@ void decode_sample(void) {
 
     // Output byte array is allocated dynamically
     size_t size;
-    uint8_t* decoded_bytes = b64_decode(&size, base64_str);
+    uint8_t* decoded_bytes = b64_std_decode(&size, base64_str);
 
     // "0x41,0x42,0x43,0x44,0x45,0x46,0x47,"
     for (int i = 0; i < size; ++i) {
@@ -96,13 +109,23 @@ void decode_sample(void) {
 }
 ```
 
+- `b64_std_encode`: standard decoding
+    - 62nd/63rd encoding character: `+`/ `/`
+    - Non-encoding characters are not allowed
+- `b64_url_encode`: URL-safe decoding
+    - 62nd/63rd encoding character: `-`/ `_`
+    - Non-encoding characters are not allowed
+- `b64_mime_decode`: MIME encoding
+    - 62nd/63rd encoding character: `+`/ `/`
+    - Non-encoding characters are discarded
+
 ### URL-safe encoding
 
 Provide URL-safe encoding / decoding (`-` and `_` are used instead of `+` and `/`, and padding is not used) by `b64_url_encode` and `b64_url_decode`.
 
 ### Encoding for MIME
 
-Provide encoding / decoding for MIME (add `CRlF` per 76 charecters, and ignore non-encoded characters) by `b64_mime_encode` and `b64_mime_decode`.
+Provide encoding / decoding for MIME (add `CR+LF` per 76 charecters, and ignore non-encoded characters) by `b64_mime_encode` and `b64_mime_decode`.
 
 ## Sample
 
@@ -113,15 +136,15 @@ $ make sample
 # ...
 
 $ ls build/release/sample/
-b64_decoder  b64_encoder
+b64_std_decoder  b64_std_encoder
 ```
 
-- b64_encoder
+- b64_std_encoder
 
     Encode an attached BMP image `sample/Pepper.bmp` to `sample/encoded.txt`:
 
     ```sh
-    $ ./build/release/sample/b64_encoder ./sample/sakura.jpg ./sample/encoded.txt 
+    $ ./build/release/sample/b64_std_encoder ./sample/sakura.jpg ./sample/encoded.txt 
     Base64 encoding of ./sample/sakura.jpg is finished (87269 to 116360 bytes).
     The string is written to './sample/encoded.txt'.
     $ cat output.txt
@@ -129,12 +152,12 @@ b64_decoder  b64_encoder
     ...
     ```
 
-- b64_decoder
+- b64_std_decoder
 
     Decode `sample/encoded.txt` to `sample/decoded.bin`:
 
     ```sh
-    $ ./build/release/sample/b64_decoder ./sample/encoded.txt ./sample/decoded.bin 
+    $ ./build/release/sample/b64_std_decoder ./sample/encoded.txt ./sample/decoded.bin 
     Base64 decoding of ./sample/encoded.txt is finished (116360 to 87269 bytes).
     The byte expression is written to './sample/decoded.bin'.
 

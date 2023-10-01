@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     fclose(fp);
 
     size_t length;
-    char* encoded_str = b64_encode(&length, input_bytes, (size_t)fsize);
+    char* encoded_str = b64_std_encode(&length, input_bytes, (size_t)fsize);
 
     printf("Base64 encoding of %s is finished (%lu to %lu bytes).\n", fname, read_size, length);
 

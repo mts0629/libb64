@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     fclose(fp);
 
     size_t decoded_size;
-    uint8_t* decoded_bytes = b64_decode(&decoded_size, input_chars);
+    uint8_t* decoded_bytes = b64_std_decode(&decoded_size, input_chars);
 
     printf("Base64 decoding of %s is finished (%lu to %lu bytes).\n", fname, read_size, decoded_size);
 
