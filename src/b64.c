@@ -246,19 +246,16 @@ static size_t get_decoded_size(const char* src) {
 
 // Convert a input character to an index of the base64 encoding table
 static uint8_t decode_b64_char(const char c) {
-    if ((c >= 'A') && (c <= 'Z')) {
-        return c - 'A';
-    } else if ((c >= 'a') && (c<= 'z')) {
-        return c - 'a' + 26;
-    } else if ((c >= '0') && (c <= '9')) {
-        return c - '0' + 52;
-    } else if (c == encoding_table[62]) {
-        return 62;
-    } else if (c == encoding_table[63]) {
-        return 63;
+    uint8_t index;
+    for (index = 0; index < sizeof(encoding_table); ++index) {
+        if (c == encoding_table[index]) {
+            return index;
+        }
     }
 
-    return 0x00;
+    // Not reached here,
+    // because only valid character is passed
+    return sizeof(encoding_table);
 }
 
 // Decode each Base64 characters in a group of 4 chars
