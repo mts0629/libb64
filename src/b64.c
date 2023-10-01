@@ -160,10 +160,10 @@ static size_t get_encoded_size(const size_t src_size, const bool use_padding, co
     return encoded_size + 1;
 }
 
-char* b64_encode(int* length, const void* src, const size_t src_size) {
+char* b64_encode(size_t* length, const void* src, const size_t src_size) {
     set_standard_encoding_chars();
 
-    int size = get_encoded_size(src_size, true, false);
+    size_t size = get_encoded_size(src_size, true, false);
     char* buf = malloc(sizeof(char) * size);
     if (buf == NULL) {
         return NULL;
@@ -175,33 +175,31 @@ char* b64_encode(int* length, const void* src, const size_t src_size) {
     return buf;
 }
 
-char* b64_url_encode(int* length, const void* src, const size_t src_size) {
+char* b64_url_encode(size_t* length, const void* src, const size_t src_size) {
     set_url_encoding_chars();
 
-    int size = get_encoded_size(src_size, false, false);
+    size_t size = get_encoded_size(src_size, false, false);
     char* buf = malloc(sizeof(char) * size);
     if (buf == NULL) {
         return NULL;
     }
 
     encode(buf, src, src_size, false, false);
-
     *length = strlen(buf);
 
     return buf;
 }
 
-char* b64_mime_encode(int* length, const void* src, const size_t src_size) {
+char* b64_mime_encode(size_t* length, const void* src, const size_t src_size) {
     set_standard_encoding_chars();
 
-    int size = get_encoded_size(src_size, true, true);
+    size_t size = get_encoded_size(src_size, true, true);
     char* buf = malloc(sizeof(char) * size);
     if (buf == NULL) {
         return NULL;
     }
 
     encode(buf, src, src_size, true, true);
-
     *length = strlen(buf);
 
     return buf;
@@ -319,7 +317,7 @@ static void decode(uint8_t* dest, const char* src) {
 }
 
 // Get decoded size
-static int get_decoded_size(const char* src) {
+static size_t get_decoded_size(const char* src) {
     size_t src_size = strlen(src);
     if (src_size == 0) {
         return 0;
@@ -344,51 +342,69 @@ static int get_decoded_size(const char* src) {
     return decoded_size;
 }
 
-int b64_decode(void* dest, const char* src) {
+void* b64_decode(size_t* size, const char* src) {
     set_standard_encoding_chars();
 
     if (!is_valid_b64_string(src)) {
-        return B64_ERROR_INVALID_CHAR;
+        return NULL;
     }
 
-    int size = get_decoded_size(src);
-    if (size < 0) {
+    size_t decoded_size = get_decoded_size(src);
+    if (decoded_size == 0) {
         // Remaining length of the input is less than 1byte,
         // therefore decoding fails
-        return B64_ERROR_REMAINING_BITS;
+        return NULL;
     }
 
-    decode(dest, src);
+    void* buf = malloc(sizeof(char) * decoded_size);
+    if (buf == NULL) {
+        return NULL;
+    }
 
-    return size;
+    decode(buf, src);
+    *size = decoded_size;
+
+    return buf;
 }
 
-int b64_url_decode(void* dest, const char* src) {
+void* b64_url_decode(size_t* size, const char* src) {
     set_url_encoding_chars();
 
     if (!is_valid_b64_string(src)) {
-        return B64_ERROR_INVALID_CHAR;
+        return NULL;
     }
 
-    int size = get_decoded_size(src);
-    if (size < 0) {
-        return B64_ERROR_REMAINING_BITS;
+    size_t decoded_size = get_decoded_size(src);
+    if (decoded_size == 0) {
+        return NULL;
     }
 
-    decode(dest, src);
+    void* buf = malloc(sizeof(char) * decoded_size);
+    if (buf == NULL) {
+        return NULL;
+    }
 
-    return size;
+    decode(buf, src);
+    *size = decoded_size;
+
+    return buf;
 }
 
-int b64_mime_decode(void* dest, const char* src) {
+void* b64_mime_decode(size_t* size, const char* src) {
     set_standard_encoding_chars();
 
-    int size = get_decoded_size(src);
-    if (size < 0) {
-        return B64_ERROR_REMAINING_BITS;
+    size_t decoded_size = get_decoded_size(src);
+    if (decoded_size == 0) {
+        return NULL;
     }
 
-    decode(dest, src);
+    void* buf = malloc(sizeof(char) * decoded_size);
+    if (buf == NULL) {
+        return NULL;
+    }
 
-    return size;
+    decode(buf, src);
+    *size = decoded_size;
+
+    return buf;
 }

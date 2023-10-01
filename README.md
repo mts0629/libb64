@@ -62,7 +62,7 @@ void encode_sample(void) {
     };
 
     // Output string is allocated dynamically
-    int length;
+    size_t length;
     char* base64_str = b64_encode(&length, input_bytes, sizeof(input_bytes));
     assert(length == 12);
 
@@ -82,16 +82,17 @@ void decode_sample(void) {
     // Input base64 string
     char base64_str[] = "QUJDREVGRw==";
 
-    // Output byte array of sufficient byte size
-    uint8_t decoded_bytes[7];
-
-    int size = b64_decode(decoded_bytes, base64_str);
+    // Output byte array is allocated dynamically
+    size_t size;
+    uint8_t* decoded_bytes = b64_decode(&size, base64_str);
 
     // "0x41,0x42,0x43,0x44,0x45,0x46,0x47,"
     for (int i = 0; i < size; ++i) {
         printf("0x%2x,", decoded_bytes);
     }
     putchar('\n');
+
+    free(decoded_bytes);
 }
 ```
 

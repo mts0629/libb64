@@ -73,9 +73,9 @@ inline static void set_current_test_case_failed(void) {
     group.cases[current_case_index].passed = false;
 }
 
-bool assert_int_eq(const int expected, const int actual) {
+bool assert_size_eq(const size_t expected, const size_t actual) {
     if (expected != actual) {
-        fprintf(stderr, "FAIL: expected %d was %d\n", expected, actual);
+        fprintf(stderr, "FAIL: expected %lu was %lu\n", expected, actual);
         set_current_test_case_failed();
         return false;
     }
@@ -102,6 +102,15 @@ bool assert_mem_eq(const uint8_t *expected, const uint8_t *actual, const size_t 
             printf("%02x", actual[i]);
         }
         fprintf(stderr, "\n");
+        set_current_test_case_failed();
+        return false;
+    }
+    return true;
+}
+
+bool assert_null(void* ptr) {
+    if (ptr != NULL) {
+        fprintf(stderr, "FAIL: %p is not NULL, %p", ptr, ptr);
         set_current_test_case_failed();
         return false;
     }

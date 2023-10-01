@@ -5,16 +5,6 @@
 #include <stdint.h>
 
 /**
- * @def Error by containing invalid Base64 character
- */
-#define B64_ERROR_INVALID_CHAR -1
-
-/**
- * @def Error by remaining last bits are not enough to 1 byte
- */
-#define B64_ERROR_REMAINING_BITS -2
-
-/**
  * @brief Encode byte array by Base64
  * 
  * @param[out] length Length of the encoded string
@@ -23,7 +13,7 @@
  * @return Pointer to the encoded string, NULL-terminated
  * @retval NULL Encoding failed
  */
-char* b64_encode(int* length, const void* src, const size_t src_size);
+char* b64_encode(size_t* length, const void* src, const size_t src_size);
 
 /**
  * @brief Encode byte array by URL-safe Base64
@@ -34,7 +24,7 @@ char* b64_encode(int* length, const void* src, const size_t src_size);
  * @return Pointer to the encoded string, NULL-terminated, dynamically allocated
  * @retval NULL Encoding failed
  */
-char* b64_url_encode(int* length, const void* src, const size_t src_size);
+char* b64_url_encode(size_t* length, const void* src, const size_t src_size);
 
 /**
  * @brief Encode byte array by Base64 for MIME
@@ -45,39 +35,36 @@ char* b64_url_encode(int* length, const void* src, const size_t src_size);
  * @return Pointer to the encoded string, NULL-terminated, dynamically allocated
  * @retval NULL Encoding failed
  */
-char* b64_mime_encode(int* length, const void* src, const size_t src_size);
+char* b64_mime_encode(size_t* length, const void* src, const size_t src_size);
 
 /**
  * @brief Decode Base64 string
  * 
- * @param[out] dest Pointer to the output buffer storing decoded bytes
+ * @param[out] size Byte size of the output decoded byte array
  * @param[in] src Pointer to the input Base64-encoded string, NULL-terminated
- * @return Byte size of the decoded byte array
- * @retval B64_ERROR_INVALID_CHAR Input string contains invalid character
- * @retval B64_ERROR_REMAINING_BITS The last bits are not enough to 1 byte
+ * @return Pointer to the decoded byte array, dynamically allocated
+ * @retval NULL Decoding failed
  */
-int b64_decode(void* dest, const char* src);
+void* b64_decode(size_t* size, const char* src);
 
 /**
  * @brief Decode URL-safe Base64 string
  * 
- * @param[out] dest Pointer to the output buffer storing decoded bytes
+ * @param[out] size Byte size of the output decoded byte array
  * @param[in] src Pointer to the input URL-safe Base64-encoded string, NULL-terminated
- * @return Byte size of the decoded byte array
- * @retval B64_ERROR_INVALID_CHAR Input string contains invalid character
- * @retval B64_ERROR_REMAINING_BITS The last bits are not enough to 1 byte
+ * @return Pointer to the decoded byte array, dynamically allocated
+ * @retval NULL Decoding failed
  */
-int b64_url_decode(void* dest, const char* src);
+void* b64_url_decode(size_t* size, const char* src);
 
 /**
  * @brief Decode Base64 string for MIME
  * 
- * @param[out] dest Pointer to the output buffer storing decoded bytes
+ * @param[out] size Byte size of the output decoded byte array
  * @param[in] src Pointer to the input Base64-MIME-encoded string, NULL-terminated
- * @return Byte size of the decoded byte array
- * @retval B64_ERROR_INVALID_CHAR Input string contains invalid character
- * @retval B64_ERROR_REMAINING_BITS The last bits are not enough to 1 byte
+ * @return Pointer to the decoded byte array, dynamically allocated
+ * @retval NULL Decoding failed
  */
-int b64_mime_decode(void* dest, const char* src);
+void* b64_mime_decode(size_t* size, const char* src);
 
 #endif // B64_H
