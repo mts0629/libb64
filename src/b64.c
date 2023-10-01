@@ -30,6 +30,36 @@ static const int max_line_length = 76;
 // Null character
 #define CHAR_NULL '\0'
 
+// Get Base64 encoded size
+static size_t get_encoded_size(const size_t src_size, const bool use_padding, const bool insert_crlf) {
+    if (src_size == 0) {
+        return 0;
+    }
+
+    size_t num_6bit_blocks = (src_size * 8 + 5) / 6;
+    size_t encoded_size = (num_6bit_blocks + 3) / 4 * 4;
+
+    // Reduce padding size if not required
+    if (!use_padding) {
+        size_t num_padding = 4 - (num_6bit_blocks % 4);
+        if (num_padding <= 3) {
+            encoded_size -= num_padding;
+        }
+    }
+
+    // Add CR+LF if required
+    if (insert_crlf) {
+        int num_lines = encoded_size / max_line_length;
+        if ((encoded_size % max_line_length) == 0) {
+            num_lines--;
+        }
+        encoded_size += (num_lines * 2);
+    }
+
+    // Consider null charecter
+    return encoded_size + 1;
+}
+
 // Encode each 6 bit unit in an encoding block
 static inline char encode_to_1st_char(const uint8_t byte) {
     return encoding_table[(byte & 0xfc) >> 2];
@@ -73,7 +103,14 @@ static void encode_to_4chars(char* dest, const uint8_t* src, const int num_remai
 }
 
 // Encode bytes to Base64 string
-static void encode(char* dest, const uint8_t* src, const size_t src_size, const bool use_padding, const bool insert_crlf) {
+static char* encode(size_t* length, const uint8_t* src, const size_t src_size, const bool use_padding, const bool insert_crlf) {
+    size_t encoded_size = get_encoded_size(src_size, use_padding, insert_crlf);
+
+    char* buf = malloc(sizeof(char) * encoded_size);
+    if (buf == NULL) {
+        return NULL;
+    }
+
     int src_index = 0;
     int dest_index = 0;
 
@@ -82,7 +119,7 @@ static void encode(char* dest, const uint8_t* src, const size_t src_size, const 
 
     while (num_remaining_bytes > 0) {
         // Convert 3 input characters to 4 base64-encoded characters
-        encode_to_4chars(&dest[dest_index], &src[src_index], num_remaining_bytes, use_padding);
+        encode_to_4chars(&buf[dest_index], &src[src_index], num_remaining_bytes, use_padding);
 
         if (use_padding || (num_remaining_bytes >= 3)) {
             src_index += 3;
@@ -102,8 +139,8 @@ static void encode(char* dest, const uint8_t* src, const size_t src_size, const 
         if (insert_crlf) {
             if (num_remaining_bytes > 0) {
                 if ((num_encoded_chars % max_line_length) == 0) {
-                    dest[dest_index] = CHAR_CR;
-                    dest[dest_index + 1] = CHAR_LF;
+                    buf[dest_index] = CHAR_CR;
+                    buf[dest_index + 1] = CHAR_LF;
                     dest_index += 2;
                 }
             }
@@ -111,7 +148,11 @@ static void encode(char* dest, const uint8_t* src, const size_t src_size, const 
     }
 
     // Terminate encoded string
-    dest[dest_index] = CHAR_NULL;
+    buf[dest_index] = CHAR_NULL;
+
+    *length = strlen(buf);
+
+    return buf;
 }
 
 // Set the last 2 (62nd and 63rd) encoding character
@@ -130,97 +171,24 @@ static inline void set_url_encoding_chars(void) {
     set_last2_encoding_chars('-', '_');
 }
 
-// Get Base64 encoded size
-static size_t get_encoded_size(const size_t src_size, const bool use_padding, const bool insert_crlf) {
-    if (src_size == 0) {
-        return 0;
-    }
-
-    size_t num_6bit_blocks = (src_size * 8 + 5) / 6;
-    size_t encoded_size = (num_6bit_blocks + 3) / 4 * 4;
-
-    // Reduce padding size if not required
-    if (!use_padding) {
-        size_t num_padding = 4 - (num_6bit_blocks % 4);
-        if (num_padding <= 3) {
-            encoded_size -= num_padding;
-        }
-    }
-
-    // Add CR+LF if required
-    if (insert_crlf) {
-        int num_lines = encoded_size / max_line_length;
-        if ((encoded_size % max_line_length) == 0) {
-            num_lines--;
-        }
-        encoded_size += (num_lines * 2);
-    }
-
-    // Consider null charecter
-    return encoded_size + 1;
-}
-
 char* b64_encode(size_t* length, const void* src, const size_t src_size) {
     set_standard_encoding_chars();
 
-    size_t size = get_encoded_size(src_size, true, false);
-    char* buf = malloc(sizeof(char) * size);
-    if (buf == NULL) {
-        return NULL;
-    }
-
-    encode(buf, src, src_size, true, false);
-    *length = strlen(buf);
-
-    return buf;
+    return encode(length, src, src_size, true, false);
 }
 
 char* b64_url_encode(size_t* length, const void* src, const size_t src_size) {
     set_url_encoding_chars();
 
-    size_t size = get_encoded_size(src_size, false, false);
-    char* buf = malloc(sizeof(char) * size);
-    if (buf == NULL) {
-        return NULL;
-    }
-
-    encode(buf, src, src_size, false, false);
-    *length = strlen(buf);
-
-    return buf;
+    return encode(length, src, src_size, false, false);
 }
 
 char* b64_mime_encode(size_t* length, const void* src, const size_t src_size) {
     set_standard_encoding_chars();
 
-    size_t size = get_encoded_size(src_size, true, true);
-    char* buf = malloc(sizeof(char) * size);
-    if (buf == NULL) {
-        return NULL;
-    }
-
-    encode(buf, src, src_size, true, true);
-    *length = strlen(buf);
-
-    return buf;
+    return encode(length, src, src_size, true, true);
 }
 
-// Convert a input character to an index of the base64 encoding table
-static uint8_t decode_b64_char(const char c) {
-    if ((c >= 'A') && (c <= 'Z')) {
-        return c - 'A';
-    } else if ((c >= 'a') && (c<= 'z')) {
-        return c - 'a' + 26;
-    } else if ((c >= '0') && (c <= '9')) {
-        return c - '0' + 52;
-    } else if (c == encoding_table[62]) {
-        return 62;
-    } else if (c == encoding_table[63]) {
-        return 63;
-    }
-
-    return 0x00;
-}
 
 // Verify that the character is as Base64
 static inline bool is_valid_b64_char(const char c) {
@@ -243,6 +211,49 @@ static bool is_valid_b64_string(const char* str) {
     }
 
     return true;
+}
+
+// Get decoded size
+static size_t get_decoded_size(const char* src) {
+    size_t src_size = strlen(src);
+    if (src_size == 0) {
+        return 0;
+    }
+
+    size_t num_encoding_chars = 0;
+    for (size_t i = 0; i < src_size; ++i) {
+        if (is_valid_b64_char(src[i])) {
+            num_encoding_chars++;
+        }
+    }
+
+    size_t decoded_size = num_encoding_chars / 4 * 3;
+    size_t remaining_bytes = num_encoding_chars % 4;
+    if (remaining_bytes > 0) {
+        if (remaining_bytes == 1) {
+            return -1;
+        }
+        decoded_size += (remaining_bytes - 1);
+    }
+
+    return decoded_size;
+}
+
+// Convert a input character to an index of the base64 encoding table
+static uint8_t decode_b64_char(const char c) {
+    if ((c >= 'A') && (c <= 'Z')) {
+        return c - 'A';
+    } else if ((c >= 'a') && (c<= 'z')) {
+        return c - 'a' + 26;
+    } else if ((c >= '0') && (c <= '9')) {
+        return c - '0' + 52;
+    } else if (c == encoding_table[62]) {
+        return 62;
+    } else if (c == encoding_table[63]) {
+        return 63;
+    }
+
+    return 0x00;
 }
 
 // Decode each Base64 characters in a group of 4 chars
@@ -278,7 +289,19 @@ static void decode_to_3bytes(uint8_t* dest, const char* src, const int num_to_de
 }
 
 // Decode Base64 string to bytes
-static void decode(uint8_t* dest, const char* src) {
+static void* decode(size_t* size, const char* src) {
+    size_t decoded_size = get_decoded_size(src);
+    if (decoded_size == 0) {
+        // Remaining length of the input is less than 1byte,
+        // therefore decoding fails
+        return NULL;
+    }
+
+    uint8_t* buf = malloc(sizeof(uint8_t) * decoded_size);
+    if (buf == NULL) {
+        return NULL;
+    }
+
     int src_index = 0;
     int dest_index = 0;
 
@@ -307,39 +330,17 @@ static void decode(uint8_t* dest, const char* src) {
 
         if (num_to_decode > 0) {
             // Convert 4 input characters to 3 base64-decoded bytes
-            decode_to_3bytes(&dest[dest_index], decoding_chars, num_to_decode);
+            decode_to_3bytes(&buf[dest_index], decoding_chars, num_to_decode);
 
             dest_index += (num_to_decode - 1);
         }
 
         num_remaining_chars -= 4;
     }
-}
 
-// Get decoded size
-static size_t get_decoded_size(const char* src) {
-    size_t src_size = strlen(src);
-    if (src_size == 0) {
-        return 0;
-    }
+    *size = decoded_size;
 
-    size_t num_encoding_chars = 0;
-    for (size_t i = 0; i < src_size; ++i) {
-        if (is_valid_b64_char(src[i])) {
-            num_encoding_chars++;
-        }
-    }
-
-    size_t decoded_size = num_encoding_chars / 4 * 3;
-    size_t remaining_bytes = num_encoding_chars % 4;
-    if (remaining_bytes > 0) {
-        if (remaining_bytes == 1) {
-            return -1;
-        }
-        decoded_size += (remaining_bytes - 1);
-    }
-
-    return decoded_size;
+    return (void*)buf;
 }
 
 void* b64_decode(size_t* size, const char* src) {
@@ -349,22 +350,7 @@ void* b64_decode(size_t* size, const char* src) {
         return NULL;
     }
 
-    size_t decoded_size = get_decoded_size(src);
-    if (decoded_size == 0) {
-        // Remaining length of the input is less than 1byte,
-        // therefore decoding fails
-        return NULL;
-    }
-
-    void* buf = malloc(sizeof(char) * decoded_size);
-    if (buf == NULL) {
-        return NULL;
-    }
-
-    decode(buf, src);
-    *size = decoded_size;
-
-    return buf;
+    return decode(size, src);
 }
 
 void* b64_url_decode(size_t* size, const char* src) {
@@ -374,37 +360,11 @@ void* b64_url_decode(size_t* size, const char* src) {
         return NULL;
     }
 
-    size_t decoded_size = get_decoded_size(src);
-    if (decoded_size == 0) {
-        return NULL;
-    }
-
-    void* buf = malloc(sizeof(char) * decoded_size);
-    if (buf == NULL) {
-        return NULL;
-    }
-
-    decode(buf, src);
-    *size = decoded_size;
-
-    return buf;
+    return decode(size, src);
 }
 
 void* b64_mime_decode(size_t* size, const char* src) {
     set_standard_encoding_chars();
 
-    size_t decoded_size = get_decoded_size(src);
-    if (decoded_size == 0) {
-        return NULL;
-    }
-
-    void* buf = malloc(sizeof(char) * decoded_size);
-    if (buf == NULL) {
-        return NULL;
-    }
-
-    decode(buf, src);
-    *size = decoded_size;
-
-    return buf;
+    return decode(size, src);
 }
