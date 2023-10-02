@@ -158,6 +158,19 @@ void test_mime_encoding_outputs_no_trailing_CRLF(void) {
     FREE_NULL(encoded_str);
 }
 
+void test_encoding_by_specified_line_length(void) {
+    static uint8_t input_bytes[] = { 0x00, 0x10, 0x83 };
+
+    static char output_b64_chars[] = "ABC\x0d\x0aD";
+
+    size_t length;
+
+    char* encoded_str = b64_encode(&length, input_bytes, sizeof(input_bytes), (char[]){'=', '/'}, true, 3);
+    ASSERT_SIZE_EQ(strlen(output_b64_chars), length);
+    ASSERT_STR_EQ(output_b64_chars, encoded_str);
+    FREE_NULL(encoded_str);
+}
+
 void test_encoding_fails_when_input_size_is_0(void) {
     uint8_t input_bytes[] = { 0x00 };
 
@@ -300,6 +313,8 @@ int main(void) {
     ADD_TEST_CASE(test_encoding_to_over_76_chars);
 
     ADD_TEST_CASE(test_mime_encoding_outputs_no_trailing_CRLF);
+
+    ADD_TEST_CASE(test_encoding_by_specified_line_length);
 
     ADD_TEST_CASE(test_encoding_fails_when_input_size_is_0);
 

@@ -74,7 +74,8 @@ static inline char encode_to_4th_char(const uint8_t byte) {
     return encoding_table[byte & 0x3f];
 }
 
-static void encode_to_4chars(char* dest, const uint8_t* src, const int num_remaining_bytes, const bool use_padding) {
+static int encode_to_4chars(char* dest, const uint8_t* src, const int num_remaining_bytes, const bool use_padding) {
+    int num_encoded;
     dest[0] = encode_to_1st_char(src[0]);
     switch (num_remaining_bytes) {
         case 1:
@@ -83,6 +84,7 @@ static void encode_to_4chars(char* dest, const uint8_t* src, const int num_remai
                 dest[2] = padding;
                 dest[3] = padding;
             }
+            num_encoded = 2;
             break;
         case 2:
             dest[1] = encode_to_2nd_char(src[0], src[1]);
@@ -90,13 +92,17 @@ static void encode_to_4chars(char* dest, const uint8_t* src, const int num_remai
             if (use_padding) {
                 dest[3] = padding;
             }
+            num_encoded = 3;
             break;
         default:
             dest[1] = encode_to_2nd_char(src[0], src[1]);
             dest[2] = encode_to_3rd_char(src[1], src[2]);
             dest[3] = encode_to_4th_char(src[2]);
+            num_encoded = 4;
             break;
     }
+
+    return num_encoded;
 }
 
 // Encode bytes to Base64 string
@@ -119,31 +125,39 @@ static char* encode(size_t* length, const uint8_t* src, const size_t src_size, c
 
     while (num_remaining_bytes > 0) {
         // Convert 3 input characters to 4 base64-encoded characters
-        encode_to_4chars(&buf[dest_index], &src[src_index], num_remaining_bytes, use_padding);
+        char encoded_chars[4 + 1] = { '\0' };
+        int num_encoded = encode_to_4chars(encoded_chars, &src[src_index], num_remaining_bytes, use_padding);
+
+        int i = 0;
+        while (encoded_chars[i] != '\0') {
+            buf[dest_index] = encoded_chars[i];
+            dest_index++;
+            // Insert CR+LF if required
+            if (line_length > 0) {
+                if (num_remaining_bytes > 0) {
+                    if ((dest_index % line_length) == 0) {
+                        buf[dest_index] = CHAR_CR;
+                        buf[dest_index + 1] = CHAR_LF;
+                        dest_index += 2;
+                    }
+                }
+            }
+            i++;
+        }
+
+        num_encoded_chars += num_encoded;
 
         if (use_padding || (num_remaining_bytes >= 3)) {
             src_index += 3;
-            dest_index += 4;
 
             num_remaining_bytes -= 3;
-            num_encoded_chars += 4;
+            // num_encoded_chars += 4;
         } else {
             src_index += num_remaining_bytes;
-            dest_index += (num_remaining_bytes + 1);
+            // dest_index += (num_remaining_bytes + 1);
 
             num_remaining_bytes -= num_remaining_bytes;
-            num_encoded_chars += (num_remaining_bytes + 1);
-        }
-
-        // Insert CR+LF if required
-        if (line_length > 0) {
-            if (num_remaining_bytes > 0) {
-                if ((num_encoded_chars % line_length) == 0) {
-                    buf[dest_index] = CHAR_CR;
-                    buf[dest_index + 1] = CHAR_LF;
-                    dest_index += 2;
-                }
-            }
+            // num_encoded_chars += (num_remaining_bytes + 1);
         }
     }
 
@@ -169,6 +183,12 @@ static inline void set_standard_encoding_chars(void) {
 // Set the last 2 encoding characters for URL-safe encoding
 static inline void set_url_encoding_chars(void) {
     set_last2_encoding_chars('-', '_');
+}
+
+char* b64_encode(size_t* length, const void* src, const size_t src_size, char last_2_encoding_chars[2], const bool use_padding, const size_t line_length) {
+    set_last2_encoding_chars(last_2_encoding_chars[0], last_2_encoding_chars[1]);
+
+    return encode(length, src, src_size, use_padding, line_length);
 }
 
 char* b64_std_encode(size_t* length, const void* src, const size_t src_size) {
