@@ -1,8 +1,23 @@
 #ifndef B64_H
 #define B64_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
+/**
+ * @brief Encode byte array Base64 encoding
+ *
+ * @param[out] length Length of the encoded string
+ * @param[in] src Pointer to the input byte array
+ * @param[in] src_size Byte size of the input
+ * @param[in] last_2_encoding_chars 62nd/63rd encoding characters
+ * @param[in] use_padding Use padding ('=')
+ * @param[in] line_length Length to insert linebreak (CRLF) (no linebreaks with 0)
+ * @return Pointer to the null-terminated encoded string, dynamically allocated on the heap
+ * @retval NULL Encoding failed
+ */
+char* b64_encode(size_t* length, const void* src, const size_t src_size, char last_2_encoding_chars[2], const bool use_padding, const size_t line_length);
 
 /**
  * @brief Encode byte array by standard Base64 encoding

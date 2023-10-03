@@ -161,7 +161,7 @@ void test_mime_encoding_outputs_no_trailing_CRLF(void) {
 void test_encoding_by_specified_line_length(void) {
     static uint8_t input_bytes[] = { 0x00, 0x10, 0x83 };
 
-    static char output_b64_chars[] = "ABC\x0d\x0aD";
+    static char output_b64_chars[] = "ABC\x0d\x0a""D";
 
     size_t length;
 

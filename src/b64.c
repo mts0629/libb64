@@ -44,7 +44,7 @@ static size_t get_encoded_byte_size(const size_t src_size, const bool use_paddin
         }
     }
 
-    // Add CR+LF if required
+    // Add size of CRLF if required
     if (line_length > 0) {
         int num_lines = encoded_size / line_length;
         if ((encoded_size % line_length) == 0) {
@@ -74,8 +74,7 @@ static inline char encode_to_4th_char(const uint8_t byte) {
     return encoding_table[byte & 0x3f];
 }
 
-static int encode_to_4chars(char* dest, const uint8_t* src, const int num_remaining_bytes, const bool use_padding) {
-    int num_encoded;
+static void encode_to_4chars(char* dest, const uint8_t* src, const int num_remaining_bytes, const bool use_padding) {
     dest[0] = encode_to_1st_char(src[0]);
     switch (num_remaining_bytes) {
         case 1:
@@ -83,26 +82,26 @@ static int encode_to_4chars(char* dest, const uint8_t* src, const int num_remain
             if (use_padding) {
                 dest[2] = padding;
                 dest[3] = padding;
+            } else {
+                dest[2] = CHAR_NULL;
+                dest[3] = CHAR_NULL;
             }
-            num_encoded = 2;
             break;
         case 2:
             dest[1] = encode_to_2nd_char(src[0], src[1]);
             dest[2] = encode_to_3rd_char(src[1], 0x00);
             if (use_padding) {
                 dest[3] = padding;
+            } else {
+                dest[3] = CHAR_NULL;
             }
-            num_encoded = 3;
             break;
         default:
             dest[1] = encode_to_2nd_char(src[0], src[1]);
             dest[2] = encode_to_3rd_char(src[1], src[2]);
             dest[3] = encode_to_4th_char(src[2]);
-            num_encoded = 4;
             break;
     }
-
-    return num_encoded;
 }
 
 // Encode bytes to Base64 string
@@ -112,52 +111,46 @@ static char* encode(size_t* length, const uint8_t* src, const size_t src_size, c
         return NULL;
     }
 
+    bool insert_crlf = (line_length > 0) ? true : false;
+
     char* buf = malloc(sizeof(char) * encoded_byte_size);
     if (buf == NULL) {
         return NULL;
     }
 
-    int src_index = 0;
-    int dest_index = 0;
+    size_t src_index = 0;
+    size_t dest_index = 0;
 
     int num_encoded_chars = 0;
     int num_remaining_bytes = (int)src_size;
 
+    char encoded_chars[4];
     while (num_remaining_bytes > 0) {
         // Convert 3 input characters to 4 base64-encoded characters
-        char encoded_chars[4 + 1] = { '\0' };
-        int num_encoded = encode_to_4chars(encoded_chars, &src[src_index], num_remaining_bytes, use_padding);
-
-        int i = 0;
-        while (encoded_chars[i] != '\0') {
-            buf[dest_index] = encoded_chars[i];
-            dest_index++;
-            // Insert CR+LF if required
-            if (line_length > 0) {
-                if (num_remaining_bytes > 0) {
-                    if ((dest_index % line_length) == 0) {
-                        buf[dest_index] = CHAR_CR;
-                        buf[dest_index + 1] = CHAR_LF;
-                        dest_index += 2;
-                    }
-                }
-            }
-            i++;
-        }
-
-        num_encoded_chars += num_encoded;
+        encode_to_4chars(encoded_chars, &src[src_index], num_remaining_bytes, use_padding);
 
         if (use_padding || (num_remaining_bytes >= 3)) {
             src_index += 3;
-
             num_remaining_bytes -= 3;
-            // num_encoded_chars += 4;
         } else {
             src_index += num_remaining_bytes;
-            // dest_index += (num_remaining_bytes + 1);
-
             num_remaining_bytes -= num_remaining_bytes;
-            // num_encoded_chars += (num_remaining_bytes + 1);
+        }
+
+        size_t num_chars = strlen(encoded_chars);
+        for (size_t i = 0; i < num_chars; ++i) {
+            buf[dest_index] = encoded_chars[i];
+            num_encoded_chars++;
+            dest_index++;
+            // Insert CRLF if required
+            // Skip at the end of encoded string
+            if (insert_crlf && (dest_index < (encoded_byte_size - 1))) {
+                if ((num_encoded_chars % line_length) == 0) {
+                    buf[dest_index] = CHAR_CR;
+                    buf[dest_index + 1] = CHAR_LF;
+                    dest_index += 2;
+                }
+            }
         }
     }
 
