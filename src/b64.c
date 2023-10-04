@@ -359,6 +359,12 @@ static void* decode(size_t* size, const char* src, const bool validate) {
     return (void*)buf;
 }
 
+void* b64_decode(size_t* size, const char* src, char last_2_encoding_chars[2], const bool validate) {
+    set_last2_encoding_chars(last_2_encoding_chars[0], last_2_encoding_chars[1]);
+
+    return decode(size, src, validate);
+}
+
 void* b64_std_decode(size_t* size, const char* src) {
     set_standard_encoding_chars();
 

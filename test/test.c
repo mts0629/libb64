@@ -287,6 +287,18 @@ void test_mime_decoding_with_non_encoding_char(void) {
     FREE_NULL(output_bytes);
 }
 
+void test_decoding_with_specified_chars(void) {
+    static char input_b64_chars[] = "89?@";
+    static uint8_t original_bytes[] = { 0xf3, 0xdf, 0xbf };
+
+    size_t size;
+
+    uint8_t* output_bytes = b64_decode(&size, input_b64_chars, (char[]){'?', '@'}, true);
+    ASSERT_SIZE_EQ(sizeof(original_bytes), size);
+    ASSERT_MEM_EQ(original_bytes, output_bytes, size);
+    FREE_NULL(output_bytes);
+}
+
 void test_decoding_fails_when_input_size_is_0(void) {
     char input_b64_chars[] = "";
 
@@ -338,6 +350,8 @@ int main(void) {
 
     ADD_TEST_CASE(test_mime_decoding_with_multi_line_encoding_chars);
     ADD_TEST_CASE(test_mime_decoding_with_non_encoding_char);
+
+    ADD_TEST_CASE(test_decoding_with_specified_chars);
 
     ADD_TEST_CASE(test_decoding_fails_when_input_size_is_0);
     ADD_TEST_CASE(test_decoding_fails_less_than_1byte);

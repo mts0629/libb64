@@ -57,6 +57,18 @@ char* b64_mime_encode(size_t* length, const void* src, const size_t src_size);
  *
  * @param[out] size Byte size of the output decoded byte array
  * @param[in] src Pointer to the input null-terminated Base64-encoded string
+ * @param[in] last_2_encoding_chars 62nd/63rd encoding characters
+ * @param[in] validate Validate characters in the input string
+ * @return Pointer to the decoded byte array, dynamically allocated on the heap
+ * @retval NULL Decoding failed
+ */
+void* b64_decode(size_t* size, const char* src, char last_2_encoding_chars[2], const bool validate);
+
+/**
+ * @brief Decode standard Base64-encoded string
+ *
+ * @param[out] size Byte size of the output decoded byte array
+ * @param[in] src Pointer to the input null-terminated Base64-encoded string
  * @return Pointer to the decoded byte array, dynamically allocated on the heap
  * @retval NULL Decoding failed
  */
