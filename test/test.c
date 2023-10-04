@@ -171,6 +171,19 @@ void test_encoding_by_specified_line_length(void) {
     FREE_NULL(encoded_str);
 }
 
+void test_encoding_with_specified_chars(void) {
+    static uint8_t input_bytes[] = { 0xf3, 0xdf, 0xbf };
+
+    static char output_b64_chars[] = "89?@";
+
+    size_t length;
+
+    char* encoded_str = b64_encode(&length, input_bytes, sizeof(input_bytes), (char[]){'?', '@'}, true, 0);
+    ASSERT_SIZE_EQ(strlen(output_b64_chars), length);
+    ASSERT_STR_EQ(output_b64_chars, encoded_str);
+    FREE_NULL(encoded_str);
+}
+
 void test_encoding_fails_when_input_size_is_0(void) {
     uint8_t input_bytes[] = { 0x00 };
 
@@ -315,6 +328,7 @@ int main(void) {
     ADD_TEST_CASE(test_mime_encoding_outputs_no_trailing_CRLF);
 
     ADD_TEST_CASE(test_encoding_by_specified_line_length);
+    ADD_TEST_CASE(test_encoding_with_specified_chars);
 
     ADD_TEST_CASE(test_encoding_fails_when_input_size_is_0);
 
