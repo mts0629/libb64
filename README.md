@@ -86,6 +86,12 @@ void encode_sample(void) {
     - Padding: `=`
     - Line break by `CR`+`LF` is inserted every 76 characters in the decoded string
 
+`b64_encode` provide the encoding with the following parameter can be specified:
+
+- 62nd/63rd encoding characters
+- Use padding or not
+- Line length to insert `CR`+`LF` (no line breaks by 0)
+
 ### Decoding
 
 ```c
@@ -119,13 +125,9 @@ void decode_sample(void) {
     - 62nd/63rd encoding character: `+`/ `/`
     - Non-encoding characters are discarded
 
-### URL-safe encoding
-
-Provide URL-safe encoding / decoding (`-` and `_` are used instead of `+` and `/`, and padding is not used) by `b64_url_encode` and `b64_url_decode`.
-
-### Encoding for MIME
-
-Provide encoding / decoding for MIME (add `CR+LF` per 76 charecters, and ignore non-encoded characters) by `b64_mime_encode` and `b64_mime_decode`.
+`b64_decode` provide the decoding with the following parameter can be specified:
+- 62nd/63rd encoding characters
+- Validate the input characters are the encoded characters or not
 
 ## Sample
 
