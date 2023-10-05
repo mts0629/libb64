@@ -36,14 +36,14 @@ void add_test_case(void (*test_func)(void), const char* name) {
     tcase->name = name;
     tcase->passed = true;
 
-    group.num_cases++;
+    ++group.num_cases;
 }
 
 inline static void show_test_status(void) {
     int passed = 0;
     for (int i = 0; i < group.num_cases; ++i) {
         if (group.cases[i].passed) {
-            passed++;
+            ++passed;
         }
     }
 
