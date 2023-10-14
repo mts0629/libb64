@@ -1,3 +1,7 @@
+/**
+ * @file b64.h
+ * @brief Base64 encoding/decoding
+*/
 #ifndef B64_H
 #define B64_H
 

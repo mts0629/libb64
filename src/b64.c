@@ -1,3 +1,7 @@
+/**
+ * @file b64.h
+ * @brief Base64 encoding/decoding
+*/
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -6,7 +10,7 @@
 
 #include "b64.h"
 
-// Base64 encoding table by 6-bit index and encoded character
+/** Base64 encoding table with 6-bit index and encoded character */
 static char encoding_table[] = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
     'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
@@ -17,17 +21,32 @@ static char encoding_table[] = {
     '8', '9', '+', '/'
 };
 
-// Padding character
+/**
+ * @brief Padding
+*/
 #define PADDING '='
 
-// Characters for new line
+/**
+ * @brief Carriage return
+*/
 #define CHAR_CR '\x0d'
+/**
+ * @brief Line feed
+*/
 #define CHAR_LF '\x0a'
-
-// Null character
+/**
+ * @brief Null character
+*/
 #define CHAR_NULL '\0'
 
-// Get Base64 encoded byte size
+/**
+ * @brief Get Base64 encoded byte size
+ *
+ * @param[in] src_size Byte size of input byte array
+ * @param[in] use_padding Use padding
+ * @param[in] line_length Length to insert linebreak, if 0, no linebreaks
+ * @return Byte size of the encoded string, including a NULL character
+*/
 static size_t get_encoded_byte_size(const size_t src_size, const bool use_padding, const size_t line_length) {
     if (src_size == 0) {
         return 0;
@@ -57,23 +76,56 @@ static size_t get_encoded_byte_size(const size_t src_size, const bool use_paddin
     return encoded_size + 1;
 }
 
-// Encode each 6 bit unit in an encoding block
+/**
+ * @brief Encode the first 6 bits in the 3 byte block
+ *
+ * @param[in] byte First input byte
+ * @return Base64 encoded character
+*/
 static inline char encode_to_1st_char(const uint8_t byte) {
     return encoding_table[(byte & 0xfc) >> 2];
 }
 
+/**
+ * @brief Encode the second 6 bits in the 3 byte block
+ *
+ * @param[in] byte1 First input byte in the block
+ * @param[in] byte2 Second input byte in the block
+ * @return Base64 encoded character
+*/
 static inline char encode_to_2nd_char(const uint8_t byte1, const uint8_t byte2) {
     return encoding_table[((byte1 & 0x03) << 4) | ((byte2 & 0xf0) >> 4)];
 }
 
+/**
+ * @brief Encode the third 6 bits in the 3 byte block
+ *
+ * @param[in] byte1 Second input byte in the block
+ * @param[in] byte2 Third input byte in the block
+ * @return Base64 encoded character
+*/
 static inline char encode_to_3rd_char(const uint8_t byte1, const uint8_t byte2) {
     return encoding_table[((byte1 & 0x0f) << 2) | ((byte2 & 0xc0) >> 6)];
 }
 
+/**
+ * @brief Encode the fourth 6 bits in the 3 byte block
+ *
+ * @param[in] byte Third input byte in the block
+ * @return Base64 encoded character
+*/
 static inline char encode_to_4th_char(const uint8_t byte) {
     return encoding_table[byte & 0x3f];
 }
 
+/**
+ * @brief Encode 3 bytes of the input to Base64 encoding characters
+ *
+ * @param[out] dest Pointer to the Base64 encoded characters
+ * @param[in] src Pointer to the input bytes
+ * @param[in] num_remaining_bytes The number of remaining bytes in the input
+ * @param[in] use_padding Use padding
+*/
 static void encode_to_4chars(char* dest, const uint8_t* src, const int num_remaining_bytes, const bool use_padding) {
     dest[0] = encode_to_1st_char(src[0]);
     switch (num_remaining_bytes) {
@@ -104,7 +156,17 @@ static void encode_to_4chars(char* dest, const uint8_t* src, const int num_remai
     }
 }
 
-// Encode bytes to Base64 string
+/**
+ * @brief Encode input bytes to Base64 encoded string
+ *
+ * @param[out] length Length of the encoded string
+ * @param[in] src Pointer to the input bytes
+ * @param[in] src_size Byte size of the input
+ * @param[in] use_padding Use padding
+ * @param[in] line_length Length to insert linebreak, if 0, no linebreaks
+ * @return Pointer to the encoded string
+ * @retval NULL if encoding failed
+*/
 static char* encode(size_t* length, const uint8_t* src, const size_t src_size, const bool use_padding, const size_t line_length) {
     size_t encoded_byte_size = get_encoded_byte_size(src_size, use_padding, line_length);
     if (encoded_byte_size == 0) {
@@ -157,16 +219,21 @@ static char* encode(size_t* length, const uint8_t* src, const size_t src_size, c
     return buf;
 }
 
-// Set the last 2 (62nd and 63rd) encoding character
+/**
+ * @brief Set the last 2 (62nd and 63rd) characters in the encoding table
+ *
+ * @param[in] encoding_char_62nd 62nd encoding character
+ * @param[in] encoding_char_63rd 63rd encoding character
+*/
 static inline void set_last2_encoding_chars(const char encoding_char_62nd, const char encoding_char_63rd) {
     encoding_table[62] = encoding_char_62nd;
     encoding_table[63] = encoding_char_63rd;
 }
 
-// Last 2 encoding characters for standard encoding
+/** Last2 encoding characters for the standard encoding */
 static char standard_encoding_chars[] = { '+', '/' };
 
-// Last 2 encoding characters for URL-safe encoding
+/** Last 2 encoding characters for the URL-safe encoding */
 static char url_safe_encoding_chars[] = { '-', '_' };
 
 char* b64_encode(size_t* length, const void* src, const size_t src_size, char last_2_encoding_chars[2], const bool use_padding, const size_t line_length) {
@@ -188,7 +255,13 @@ char* b64_mime_encode(size_t* length, const void* src, const size_t src_size) {
 }
 
 
-// Verify that the character is as Base64
+/**
+ * @brief Verify the input character
+ *
+ * @param[in] c Input character
+ * @retval true if the character is valid as Base64 character
+ * @retval false if the character is not valid
+*/
 static inline bool is_valid_b64_char(const char c) {
     if (isalnum(c) || (c == encoding_table[62]) || (c == encoding_table[63])) {
         return true;
@@ -197,7 +270,13 @@ static inline bool is_valid_b64_char(const char c) {
     return false;
 }
 
-// Verify that the string is valid as Base64
+/**
+ * @brief Verify the input string
+ *
+ * @param[in] str Input string
+ * @retval true if the string is valid as Base64 string
+ * @retval false if the string is not valid
+*/
 static bool is_valid_b64_string(const char* str) {
     size_t length = strlen(str);
 
@@ -211,7 +290,12 @@ static bool is_valid_b64_string(const char* str) {
     return true;
 }
 
-// Get decoded size
+/**
+ * @brief Get Base64 decoded byte size
+ *
+ * @param[in] src Pointer to the input string
+ * @return Byte size of the decoded bytes
+*/
 static size_t get_decoded_size(const char* src) {
     size_t src_size = strlen(src);
     if (src_size == 0) {
@@ -239,7 +323,13 @@ static size_t get_decoded_size(const char* src) {
     return decoded_size;
 }
 
-// Convert a input character to an index of the base64 encoding table
+/**
+ * @brief Decode a input character with the encoding table
+ *
+ * @param[in] c Input character
+ * @return Decoded byte value, 0 to 63
+ * @retval 64 if decoding failed
+*/
 static uint8_t decode_b64_char(const char c) {
     uint8_t index;
     for (index = 0; index < sizeof(encoding_table); ++index) {
@@ -253,19 +343,46 @@ static uint8_t decode_b64_char(const char c) {
     return sizeof(encoding_table);
 }
 
-// Decode each Base64 characters in a group of 4 chars
+/**
+ * @brief Decode the first 8 bits in the 4 encoded characters
+ *
+ * @param[in] char1 First input character in the block
+ * @param[in] char2 Second input character in the block
+ * @return Base64 decoded byte
+*/
 static inline uint8_t decode_to_1st_byte(const char char1, const char char2) {
     return ((decode_b64_char(char1) & 0x3f) << 2) | ((decode_b64_char(char2) & 0x30) >> 4);
 }
 
+/**
+ * @brief Decode the second 8 bits in the 4 encoded characters
+ *
+ * @param[in] char1 Second input character in the block
+ * @param[in] char2 Third input character in the block
+ * @return Base64 decoded byte
+*/
 static inline uint8_t decode_to_2nd_byte(const char char1, const char char2) {
     return ((decode_b64_char(char1) & 0x0f) << 4) | ((decode_b64_char(char2) & 0x3c) >> 2);
 }
 
+/**
+ * @brief Decode the third 8 bits in the 4 encoded characters
+ *
+ * @param[in] char1 Third input character in the block
+ * @param[in] char2 Fourth input character in the block
+ * @return Base64 decoded byte
+*/
 static inline uint8_t decode_to_3rd_byte(const char char1, const char char2) {
     return ((decode_b64_char(char1) & 0x03) << 6) | (decode_b64_char(char2) & 0x3f);
 }
 
+/**
+ * @brief Encode 4 characters of the input string to original bytes
+ *
+ * @param[out] dest Pointer to the decoded bytes
+ * @param[in] src Pointer to the input string
+ * @param[in] num_to_decode The number of remaining bytes in the input
+*/
 static void decode_to_3bytes(uint8_t* dest, const char* src, const int num_to_decode) {
     switch (num_to_decode) {
         case 2:
@@ -285,7 +402,15 @@ static void decode_to_3bytes(uint8_t* dest, const char* src, const int num_to_de
     }
 }
 
-// Decode Base64 string to bytes
+/**
+ * @brief Decode input Base64 string to byte array
+ *
+ * @param[out] size Byte size of the decoded byte array
+ * @param[in] src Pointer to the input Base64 string
+ * @param[in] validate Validate the input string
+ * @return Pointer to the decoded byte array
+ * @retval NULL if decoding failed
+*/
 static void* decode(size_t* size, const char* src, const bool validate) {
     if (validate) {
         if (!is_valid_b64_string(src)) {
