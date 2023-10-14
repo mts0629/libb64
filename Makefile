@@ -1,5 +1,5 @@
-CC     := gcc
-CFLAGS  = -Wall -Wextra -Wpedantic -std=c99 -I$(INC_DIR)
+CC := gcc
+CFLAGS = -Wall -Wextra -Wpedantic -std=c99 -I$(INC_DIR)
 
 DEBUG ?= no
 ifeq ($(DEBUG), yes)
@@ -12,8 +12,8 @@ else
 	LIB_NAME := libb64
 endif
 
-INC_DIR  := include
-SRC_DIR  := src
+INC_DIR := include
+SRC_DIR := src
 TEST_DIR := test
 SAMPLE_DIR := sample
 
@@ -45,7 +45,7 @@ $(STATIC_LIB): $(OBJS)
 
 static: $(STATIC_LIB)
 
-$(SHARED_LIB): $(OBJS)
+$(SHARED_LIB): $(SRCS)
 	$(CC) $(CFLAGS) -shared -fPIC $^ -o $@
 
 shared: $(SHARED_LIB)
