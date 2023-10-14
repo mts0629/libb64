@@ -1,51 +1,54 @@
 # libb64
 
-## Description
+Library for Base64 encoding/decoding
 
-Base64 encoding/decoding static library with C
+## Requirement
 
-## Requirements
-
-- GCC (C99)
-- GNU ar
+- gcc (C99)
 - GNU Make
+- GNU Binutils (ar)
 
 ## Build
 
-Build static library `libb64.a` at `build/release` by `make` or `make static`.
+Build static library (`libb64.a`):
 
 ```sh
-$ make # or `make static`
-gcc -Wall -Wextra -Wpedantic -std=c99 -Iinclude -O2 -c src/b64.c -o build/release/src/b64.o
-ar rc build/release/libb64.a build/release/src/b64.o
+# build/release/libb64.a
+$ make
+# or
+$ make static
 ```
 
-Build shared library `libb64.so` at `build/release` by `make shared`.
+Build shared library (`libb64.so`):
 
 ```sh
+# build/release/libb64.so
 $ make shared
-gcc -Wall -Wextra -Wpedantic -std=c99 -Iinclude -O2 -c src/b64.c -o build/release/src/b64.o
-gcc -Wall -Wextra -Wpedantic -std=c99 -Iinclude -O2 -shared -fPIC build/release/src/b64.o -o build/release/libb64.so
 ```
 
-A library with debug information (`libb64d.***`) can be built with option: `DEBUG=yes` (e.g. `make DEBUG=yes`) at `build/debug`.
-
-## Test
-
-Run test cases in `test/test.c` by `make test` (`build/***/test_runner` is executed).
+Debug build (`libb64d.***`):
 
 ```sh
-$ make test
-# Build and run test cases
-# ...
-./build/release/test_runner
-test_encoding_all_b64_chars ... PASSED
-test_encoding_2bytes_input ... PASSED
-test_encoding_1byte_input ... PASSED
-...
+# build/debug/libb64d.a
+$ make DEBUG=yes
+
+# build/debug/libb64d.so
+$ make shared DEBUG=yes
 ```
 
-Also debug information can be added with: `DEBUG=yes`.
+Build and run test:
+
+```sh
+# build/release/test_runner
+$ make test
+```
+
+Build sample:
+
+```sh
+# build/release/***
+$ make sample
+```
 
 ## Usage
 
@@ -74,19 +77,19 @@ void encode_sample(void) {
 ```
 
 - `b64_std_encode`: standard encoding
-    - 62nd/63rd encoding character: `+`/ `/`
+    - 62nd/63rd encoding character: `+`/`/`
     - Padding: `=`
     - No line breaks
 - `b64_url_encode`: URL-safe encoding
-    - 62nd/63rd encoding character: `-`/ `_`
+    - 62nd/63rd encoding character: `-`/`_`
     - Padding: not used
     - No line breaks
 - `b64_mime_decode`: MIME encoding
-    - 62nd/63rd encoding character: `+`/ `/`
+    - 62nd/63rd encoding character: `+`/`/`
     - Padding: `=`
     - Line break by `CR`+`LF` is inserted every 76 characters in the decoded string
 
-`b64_encode` provide the encoding with the following parameter can be specified:
+`b64_encode` provide the encoding with the following parameters can be specified:
 
 - 62nd/63rd encoding characters
 - Use padding or not
@@ -116,37 +119,27 @@ void decode_sample(void) {
 ```
 
 - `b64_std_encode`: standard decoding
-    - 62nd/63rd encoding character: `+`/ `/`
+    - 62nd/63rd encoding character: `+`/`/`
     - Non-encoding characters are not allowed
 - `b64_url_encode`: URL-safe decoding
-    - 62nd/63rd encoding character: `-`/ `_`
+    - 62nd/63rd encoding character: `-`/`_`
     - Non-encoding characters are not allowed
 - `b64_mime_decode`: MIME encoding
-    - 62nd/63rd encoding character: `+`/ `/`
+    - 62nd/63rd encoding character: `+`/`/`
     - Non-encoding characters are discarded
 
-`b64_decode` provide the decoding with the following parameter can be specified:
+`b64_decode` provide the decoding with the following parameters can be specified:
 - 62nd/63rd encoding characters
-- Validate the input characters are the encoded characters or not
+- Validate the input characters
 
 ## Sample
 
-Build sample encoder/decoder programs in `sample` by `make sample`.
+- b64_encoder
 
-```sh
-$ make sample
-# ...
-
-$ ls build/release/sample/
-b64_std_decoder  b64_std_encoder
-```
-
-- b64_std_encoder
-
-    Encode an attached BMP image `sample/Pepper.bmp` to `sample/encoded.txt`:
+    Encode an attached Jpeg image `sample/sakura.jpg` to `sample/encoded.txt`:
 
     ```sh
-    $ ./build/release/sample/b64_std_encoder ./sample/sakura.jpg ./sample/encoded.txt 
+    $ ./build/release/sample/b64_encoder ./sample/sakura.jpg ./sample/encoded.txt 
     Base64 encoding of ./sample/sakura.jpg is finished (87269 to 116360 bytes).
     The string is written to './sample/encoded.txt'.
     $ cat output.txt
@@ -154,15 +147,19 @@ b64_std_decoder  b64_std_encoder
     ...
     ```
 
-- b64_std_decoder
+- b64_decoder
 
     Decode `sample/encoded.txt` to `sample/decoded.bin`:
 
     ```sh
-    $ ./build/release/sample/b64_std_decoder ./sample/encoded.txt ./sample/decoded.bin 
+    $ ./build/release/sample/b64_decoder ./sample/encoded.txt ./sample/decoded.bin 
     Base64 decoding of ./sample/encoded.txt is finished (116360 to 87269 bytes).
     The byte expression is written to './sample/decoded.bin'.
 
     $ diff ./sample/sakura.jpg ./sample/decoded.bin
     # No differences
     ```
+
+## License
+
+MIT License
